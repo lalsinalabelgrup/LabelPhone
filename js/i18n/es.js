@@ -86,10 +86,12 @@ const I18N = (() => {
       'login.btn_logout':              'Cerrar sesión',
       'toast.login.no_extension':      'Introduce tu extensión',
       'toast.login.no_password':       'Introduce tu contraseña',
-      'toast.login.success':           'Sesión iniciada',
+      'toast.login.success':           'Extensión registrada',
       'toast.login.failed':            'Error al iniciar sesión',
       'toast.logout.success':          'Sesión cerrada',
       'toast.logout.failed':           'Error al cerrar sesión',
+      'login.btn.connecting':          'Conectando a LabelGateway…',
+      'login.btn.registering':         'Registrando extensión…',
 
       /* Settings */
       'settings.title':                'Ajustes',

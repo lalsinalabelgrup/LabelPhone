@@ -22,7 +22,7 @@
  *   connecting, connected, disconnected
  *   registered, unregistered
  *   outgoingCall, incomingCall
- *   ringing, answered, held, resumed, ended
+ *   ringing, answered, held, resumed, ended, failed
  *   dtmf
  *   contactsUpdated, historyUpdated
  *   error
@@ -99,22 +99,68 @@ const telephonyGatewayClient = (() => {
      REAL WEBSOCKET IMPLEMENTATION  (stub — ready to wire up)
   ═══════════════════════════════════════════════════════ */
   const Real = {
-    _ws:      null,
-    _pending: new Map(),
+    _ws:             null,
+    _pending:        new Map(),
+    _connectPromise: null,
 
     connect() {
-      return new Promise((resolve, reject) => {
+      // Already open — resolve immediately, no new socket.
+      if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+        return Promise.resolve();
+      }
+      // Currently connecting — share the in-flight promise.
+      if (this._connectPromise) {
+        return this._connectPromise;
+      }
+      // New connection attempt.
+      this._connectPromise = new Promise((resolve, reject) => {
+        _state.connection = 'connecting';
+        _emit('connecting', {});
+        console.log('[telephonyGatewayClient] WS connecting');
+
+        const timer = setTimeout(() => {
+          this._connectPromise = null;
+          _state.connection = 'disconnected';
+          console.log('[telephonyGatewayClient] WS connection timeout');
+          reject(new Error('WS connection timeout'));
+        }, appConfig.telephonyGateway.timeoutMs);
+
         try {
-          _state.connection = 'connecting';
-          _emit('connecting', {});
           this._ws = new WebSocket(appConfig.telephonyGateway.wsUrl);
-          this._ws.onopen    = () => { _state.connection = 'connected'; _emit('connected', {}); resolve(); };
-          this._ws.onerror   = () => { reject(new Error('WebSocket connection failed')); _emit('error', { code: 'WS_ERROR', message: 'Connection failed' }); };
-          this._ws.onclose   = () => { _state.connection = 'disconnected'; _state.call = null; _emit('disconnected', {}); };
-          this._ws.onmessage = (e) => this._onMessage(JSON.parse(e.data));
-        } catch (err) { reject(err); }
+        } catch (err) {
+          clearTimeout(timer);
+          this._connectPromise = null;
+          _state.connection = 'disconnected';
+          reject(err);
+          return;
+        }
+
+        this._ws.onopen = () => {
+          clearTimeout(timer);
+          this._connectPromise = null;
+          _state.connection = 'connected';
+          _emit('connected', {});
+          console.log('[telephonyGatewayClient] WS connected');
+          resolve();
+        };
+        this._ws.onerror = () => {
+          clearTimeout(timer);
+          this._connectPromise = null;
+          reject(new Error('WebSocket connection failed'));
+          _emit('error', { code: 'WS_ERROR', message: 'Connection failed' });
+        };
+        this._ws.onclose = () => {
+          this._connectPromise = null;
+          _state.connection = 'disconnected';
+          _state.call = null;
+          _emit('disconnected', {});
+        };
+        this._ws.onmessage = (e) => this._onMessage(JSON.parse(e.data));
       });
+      return this._connectPromise;
     },
+
+    ensureConnected() { return this.connect(); },
 
     /* GatewayCommand: { id, command, callId?, params? }
        callId is sent for all commands that target an existing call.
@@ -147,10 +193,41 @@ const telephonyGatewayClient = (() => {
         return;
       }
       if (msg.event) {
-        const callId  = msg.callId || null;
         const payload = msg.payload || {};
+
+        /* LabelGateway may place callId at the top-level envelope OR inside
+           payload — resolve whichever is present so _syncState and logs are
+           always accurate regardless of message format. */
+        const callId = msg.callId || payload.callId || null;
+
+        const isTerminal = msg.event === 'ended' || msg.event === 'failed';
+        const priorCall  = isTerminal && _state.call ? { ..._state.call } : null;
+
+        console.log(
+          '[telephonyGatewayClient] WS event:', msg.event,
+          '| event.callId:', msg.callId,
+          '| payload.callId:', payload.callId,
+          '| resolvedCallId:', callId,
+          '| activeCallId:', _state.call ? _state.call.callId : null,
+          '| prev call state:', _state.call ? _state.call.status : 'none',
+        );
+
         this._syncState(msg.event, callId, payload);
-        _emit(msg.event, callId ? { callId, ...payload } : payload);
+
+        /* For ended/failed: merge saved call fields so handlers can build
+           history entries even if LabelGateway omits direction/contact/number
+           from the terminal event payload. Gateway-provided values win. */
+        let emitPayload = { callId, ...payload };
+        if (priorCall) {
+          emitPayload = {
+            direction: priorCall.direction,
+            contact:   priorCall.contact,
+            number:    priorCall.number,
+            ...emitPayload,
+          };
+        }
+
+        _emit(msg.event, emitPayload);
       }
     },
 
@@ -160,12 +237,15 @@ const telephonyGatewayClient = (() => {
       switch (event) {
         case 'outgoingCall':
           _state.call = { callId, direction: 'outbound', status: 'ringing', contact: payload.contact || null, number: payload.number || '', muted: false, speaker: false, held: false, startTime: null };
+          console.log('[telephonyGatewayClient] active call created (outbound), callId:', callId, 'number:', _state.call.number);
           break;
         case 'incomingCall':
           _state.call = { callId, direction: 'inbound', status: 'ringing', contact: payload.contact || null, number: payload.number || '', muted: false, speaker: false, held: false, startTime: null };
+          console.log('[telephonyGatewayClient] active call created (inbound), callId:', callId, 'number:', _state.call.number);
           break;
         case 'answered':
           if (_state.call) { _state.call.status = 'answered'; _state.call.startTime = payload.startTime || Date.now(); }
+          console.log('[telephonyGatewayClient] call answered, callId:', callId);
           break;
         case 'held':
           if (_state.call) { _state.call.status = 'held'; _state.call.held = true; }
@@ -174,6 +254,8 @@ const telephonyGatewayClient = (() => {
           if (_state.call) { _state.call.status = 'answered'; _state.call.held = false; }
           break;
         case 'ended':
+        case 'failed':
+          console.log('[telephonyGatewayClient] active call cleared by event:', event, '| callId:', callId);
           _state.call = null;
           break;
         case 'connected':
@@ -181,6 +263,7 @@ const telephonyGatewayClient = (() => {
           break;
         case 'disconnected':
           _state.connection = 'disconnected';
+          console.log('[telephonyGatewayClient] disconnected — clearing active call');
           _state.call = null;
           break;
         case 'registered':
@@ -215,7 +298,12 @@ const telephonyGatewayClient = (() => {
     getHistory()         { return this._send('getHistory'); },
     addHistoryEntry(e)   { return this._send('addHistoryEntry', { entry: e }); },
     simulateIncomingCall(contact) { return this._send('simulateIncomingCall', { contact: contact || null }); },
-    login(creds)         { return this._send('login', { extension: creds.extension, password: creds.password, displayName: creds.displayName || '' }); },
+    async login(creds) {
+      console.log('[telephonyGatewayClient] login waiting for WS connection');
+      await this.ensureConnected();
+      console.log('[telephonyGatewayClient] login sent');
+      return this._send('login', { extension: creds.extension, password: creds.password, displayName: creds.displayName || '' });
+    },
     logout()             { return this._send('logout'); },
   };
 

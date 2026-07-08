@@ -45,6 +45,15 @@
   /* Frame */
   --frame-r: 54px;
   --screen-r: 44px;
+
+  /* Desktop mode scale — single source of truth for Desktop card size */
+  --desktop-scale: 0.5;
+  /* Compact mode scale — single source of truth for Compact mode size */
+  --compact-scale: 0.72;
+  /* Shared type/spacing multiplier: renders Desktop's contents at the
+     same visual size Compact mode renders them at, given Desktop's
+     card is zoomed by --desktop-scale instead of --compact-scale. */
+  --desktop-type-scale: calc(var(--compact-scale) / var(--desktop-scale));
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
@@ -1670,10 +1679,10 @@ body {
 ══════════════════════════════════════════════════════════════ */
 body.layout-desktop {
   background: #0a0c14;
-  align-items: flex-start;
-  padding-top: 40px;
+  align-items: center;
 }
 body.layout-desktop .phone-shell {
+  zoom: var(--desktop-scale);
   background: #161c28;
   border-radius: 20px;
   padding: 0;
@@ -1700,13 +1709,14 @@ body.layout-desktop .phone-screen::after { display: none; }
 
 body.layout-desktop .screen-container {
   top: 0;
-  bottom: 83px;
+  bottom: calc(83px * var(--desktop-type-scale));
 }
 body.layout-desktop .tab-bar {
   bottom: 0;
   border-radius: 0 0 20px 20px;
-  height: 60px;
-  padding-top: 8px;
+  height: calc(83px * var(--desktop-type-scale));
+  padding: 0;
+  align-items: center;
 }
 .desktop-header {
   display: none;
@@ -1766,6 +1776,147 @@ body.layout-desktop .desktop-header { display: flex; }
 .dh-user-name { font-size: 13px; font-weight: 600; color: var(--t1); line-height: 1.2; }
 .dh-user-ext  { font-size: 11px; color: var(--t3); line-height: 1.2; }
 
+/* ── Desktop mode — typography & spacing ─────────────────────────
+   .phone-shell is scaled by `zoom: var(--desktop-scale)` above
+   (locked — do not change; it's what keeps the card's physical size
+   fixed). Every rule below instead re-derives its raw value from
+   `--desktop-type-scale` (= --compact-scale / --desktop-scale), so
+   Desktop renders each element at the same visual size Compact mode
+   would render it at. This applies uniformly — including the dial
+   pad digits, typed-number display, and every button/icon/avatar —
+   there is no longer a frozen-size exception for any element.
+   ─────────────────────────────────────────────────────────────── */
+body.layout-desktop .dh-name       { font-size: calc(15px   * var(--desktop-type-scale)); }
+body.layout-desktop .dh-user-name  { font-size: calc(13px   * var(--desktop-type-scale)); }
+body.layout-desktop .dh-user-ext   { font-size: calc(11px   * var(--desktop-type-scale)); }
+body.layout-desktop .aa-pill span,
+body.layout-desktop #autoAnswerBadgeText { font-size: calc(10.5px * var(--desktop-type-scale)); }
+
+body.layout-desktop .tab-item span { font-size: calc(10px * var(--desktop-type-scale)); }
+body.layout-desktop .tab-item svg  { width: calc(24px * var(--desktop-type-scale)); height: calc(24px * var(--desktop-type-scale)); }
+body.layout-desktop .tab-badge {
+  min-width: calc(16px * var(--desktop-type-scale));
+  height: calc(16px * var(--desktop-type-scale));
+  font-size: calc(10px * var(--desktop-type-scale));
+}
+
+body.layout-desktop .key-main   { font-size: calc(28px * var(--desktop-type-scale)); }
+body.layout-desktop .key-sub    { font-size: calc(9px  * var(--desktop-type-scale)); }
+body.layout-desktop .key-btn    { width: calc(76px * var(--desktop-type-scale)); height: calc(76px * var(--desktop-type-scale)); }
+body.layout-desktop .quick-name { font-size: calc(11px * var(--desktop-type-scale)); }
+body.layout-desktop .quick-avatar {
+  width: calc(56px * var(--desktop-type-scale));
+  height: calc(56px * var(--desktop-type-scale));
+  font-size: calc(20px * var(--desktop-type-scale));
+}
+body.layout-desktop .dialer-digits        { font-size: calc(40px * var(--desktop-type-scale)); }
+body.layout-desktop .dialer-digits.small  { font-size: calc(28px * var(--desktop-type-scale)); }
+body.layout-desktop .dialer-digits.xsmall { font-size: calc(20px * var(--desktop-type-scale)); }
+body.layout-desktop .call-btn      { width: calc(72px * var(--desktop-type-scale)); height: calc(72px * var(--desktop-type-scale)); }
+body.layout-desktop .call-btn svg  { width: calc(30px * var(--desktop-type-scale)); height: calc(30px * var(--desktop-type-scale)); }
+
+body.layout-desktop .large-title { font-size: calc(34px * var(--desktop-type-scale)); }
+
+body.layout-desktop .history-name           { font-size: calc(16px * var(--desktop-type-scale)); }
+body.layout-desktop .history-sub,
+body.layout-desktop .history-time           { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .history-section-header { font-size: calc(11px * var(--desktop-type-scale)); }
+
+body.layout-desktop .contact-name            { font-size: calc(16px * var(--desktop-type-scale)); }
+body.layout-desktop .contact-company         { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .contacts-alpha-header   { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .alpha-char              { font-size: calc(9px  * var(--desktop-type-scale)); }
+body.layout-desktop .contact-avatar {
+  width: calc(44px * var(--desktop-type-scale));
+  height: calc(44px * var(--desktop-type-scale));
+  font-size: calc(16px * var(--desktop-type-scale));
+}
+body.layout-desktop .search-input            { font-size: calc(16px * var(--desktop-type-scale)); }
+
+body.layout-desktop .call-company     { font-size: calc(16px * var(--desktop-type-scale)); }
+body.layout-desktop .call-number-loc  { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .call-ctrl-label  { font-size: calc(12px * var(--desktop-type-scale)); }
+body.layout-desktop .call-ctrl-circle {
+  width: calc(64px * var(--desktop-type-scale));
+  height: calc(64px * var(--desktop-type-scale));
+}
+body.layout-desktop .call-ctrl-circle svg {
+  width: calc(26px * var(--desktop-type-scale));
+  height: calc(26px * var(--desktop-type-scale));
+}
+body.layout-desktop .call-avatar-wrap {
+  width: calc(120px * var(--desktop-type-scale));
+  height: calc(120px * var(--desktop-type-scale));
+}
+body.layout-desktop .call-avatar {
+  width: calc(100px * var(--desktop-type-scale));
+  height: calc(100px * var(--desktop-type-scale));
+  font-size: calc(36px * var(--desktop-type-scale));
+}
+
+body.layout-desktop .incoming-company      { font-size: calc(16px * var(--desktop-type-scale)); }
+body.layout-desktop .incoming-number       { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .incoming-action-label { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .incoming-avatar-wrap {
+  width: calc(120px * var(--desktop-type-scale));
+  height: calc(120px * var(--desktop-type-scale));
+}
+body.layout-desktop .incoming-avatar {
+  width: calc(100px * var(--desktop-type-scale));
+  height: calc(100px * var(--desktop-type-scale));
+  font-size: calc(36px * var(--desktop-type-scale));
+}
+
+body.layout-desktop .call-ctrl[data-tooltip]::after { font-size: calc(11px * var(--desktop-type-scale)); }
+
+body.layout-desktop .settings-user-name          { font-size: calc(20px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-user-ext           { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-user-company       { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-section-label      { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-cell-label         { font-size: calc(16px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-cell-value         { font-size: calc(15px * var(--desktop-type-scale)); }
+body.layout-desktop .seg-btn                     { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-login-label        { font-size: calc(11px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-login-toggle-label { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-login-btn          { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .presence-badge              { font-size: calc(12px * var(--desktop-type-scale)); }
+body.layout-desktop .presence-dot-sm {
+  width: calc(8px * var(--desktop-type-scale));
+  height: calc(8px * var(--desktop-type-scale));
+}
+body.layout-desktop .settings-avatar {
+  width: calc(72px * var(--desktop-type-scale));
+  height: calc(72px * var(--desktop-type-scale));
+  font-size: calc(24px * var(--desktop-type-scale));
+}
+body.layout-desktop .settings-cell-icon {
+  width: calc(30px * var(--desktop-type-scale));
+  height: calc(30px * var(--desktop-type-scale));
+}
+body.layout-desktop .settings-cell-icon svg {
+  width: calc(17px * var(--desktop-type-scale));
+  height: calc(17px * var(--desktop-type-scale));
+}
+
+body.layout-desktop .dh-logo { width: calc(28px * var(--desktop-type-scale)); height: calc(28px * var(--desktop-type-scale)); }
+body.layout-desktop .dh-avatar { width: calc(30px * var(--desktop-type-scale)); height: calc(30px * var(--desktop-type-scale)); }
+body.layout-desktop .dh-presence-dot { width: calc(9px * var(--desktop-type-scale)); height: calc(9px * var(--desktop-type-scale)); }
+
+/* Container spacing — matches Compact's padding/gaps around the
+   elements above, using the same shared ratio. */
+body.layout-desktop .keypad-grid {
+  padding: calc(8px * var(--desktop-type-scale)) calc(24px * var(--desktop-type-scale));
+  row-gap: calc(6px * var(--desktop-type-scale));
+}
+body.layout-desktop .call-controls-grid {
+  padding: calc(28px * var(--desktop-type-scale)) calc(20px * var(--desktop-type-scale)) 0;
+  gap: calc(14px * var(--desktop-type-scale));
+}
+body.layout-desktop .quick-contacts {
+  gap: calc(20px * var(--desktop-type-scale));
+  padding: calc(16px * var(--desktop-type-scale)) calc(20px * var(--desktop-type-scale)) calc(8px * var(--desktop-type-scale));
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    COMPACT PHONE MODE  — same UI, scaled to ~72%
@@ -1775,7 +1926,7 @@ body.layout-compact {
   padding-top: 20px;
 }
 body.layout-compact .phone-shell {
-  transform: scale(0.72);
+  transform: scale(var(--compact-scale));
   transform-origin: top center;
   /* pull up the empty layout space created by transform (approx 872 * 0.28) */
   margin-bottom: -244px;
