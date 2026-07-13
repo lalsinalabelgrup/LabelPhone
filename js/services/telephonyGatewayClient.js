@@ -102,6 +102,7 @@ const telephonyGatewayClient = (() => {
     _ws:             null,
     _pending:        new Map(),
     _connectPromise: null,
+    _onAudioFrameCb: null,
 
     connect() {
       // Already open — resolve immediately, no new socket.
@@ -127,6 +128,7 @@ const telephonyGatewayClient = (() => {
 
         try {
           this._ws = new WebSocket(appConfig.telephonyGateway.wsUrl);
+          this._ws.binaryType = 'arraybuffer';
         } catch (err) {
           clearTimeout(timer);
           this._connectPromise = null;
@@ -155,7 +157,13 @@ const telephonyGatewayClient = (() => {
           _state.call = null;
           _emit('disconnected', {});
         };
-        this._ws.onmessage = (e) => this._onMessage(JSON.parse(e.data));
+        this._ws.onmessage = (e) => {
+          if (e.data instanceof ArrayBuffer) {
+            if (this._onAudioFrameCb) this._onAudioFrameCb(e.data);
+            return;
+          }
+          this._onMessage(JSON.parse(e.data));
+        };
       });
       return this._connectPromise;
     },
@@ -200,7 +208,7 @@ const telephonyGatewayClient = (() => {
            always accurate regardless of message format. */
         const callId = msg.callId || payload.callId || null;
 
-        const isTerminal = msg.event === 'ended' || msg.event === 'failed';
+        const isTerminal = msg.event === 'ended' || msg.event === 'failed' || msg.event === 'missed';
         const priorCall  = isTerminal && _state.call ? { ..._state.call } : null;
 
         console.log(
@@ -255,6 +263,7 @@ const telephonyGatewayClient = (() => {
           break;
         case 'ended':
         case 'failed':
+        case 'missed':
           console.log('[telephonyGatewayClient] active call cleared by event:', event, '| callId:', callId);
           _state.call = null;
           break;
@@ -305,6 +314,22 @@ const telephonyGatewayClient = (() => {
       return this._send('login', { extension: creds.extension, password: creds.password, displayName: creds.displayName || '' });
     },
     logout()             { return this._send('logout'); },
+
+    /* TEMPORARY diagnostic — backend-only RTP test-signal injection (silence /
+       verified tone), bypassing the browser mic/resampler/encoder/WebSocket. */
+    debugAudioTest(mode) { return this._send('debugAudioTest', { mode }, _state.call && _state.call.callId); },
+    debugAudioTestStop() { return this._send('debugAudioTestStop', null, _state.call && _state.call.callId); },
+
+    /* Binary audio relay — fire-and-forget, no command envelope, not routed
+       through _cmd (not a request/reply command). */
+    sendAudioFrame(buf)  {
+      if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+        this._ws.send(buf);
+      } else {
+        console.warn('[AUDIO WS OUT] sendAudioFrame — WebSocket not open, frame dropped', this._ws && this._ws.readyState);
+      }
+    },
+    onAudioFrame(fn)      { this._onAudioFrameCb = fn; },
   };
 
   /* ════════════════════════════════════════════════════════
@@ -352,6 +377,10 @@ const telephonyGatewayClient = (() => {
     simulateIncomingCall: _cmd('simulateIncomingCall', (c)   => _impl.simulateIncomingCall(c)),
     login:                _cmd('login',                (creds) => _impl.login(creds)),
     logout:               _cmd('logout',               ()      => _impl.logout()),
+    debugAudioTest:       _cmd('debugAudioTest',       (mode) => (_impl.debugAudioTest ? _impl.debugAudioTest(mode) : Promise.resolve({ ok: false, reason: 'not_supported' }))),
+    debugAudioTestStop:   _cmd('debugAudioTestStop',   ()     => (_impl.debugAudioTestStop ? _impl.debugAudioTestStop() : Promise.resolve({ ok: false, reason: 'not_supported' }))),
+    sendAudioFrame:       (buf)                                => _impl.sendAudioFrame(buf),
+    onAudioFrame:         (fn)                                 => _impl.onAudioFrame(fn),
 
     getState: () => ({ ..._state, call: _state.call ? { ..._state.call } : null }),
     isMock:   () => appConfig.telephonyGateway.mode === 'mock',

@@ -217,6 +217,10 @@ function createMockGateway(state, emit, debugFn) {
       return Promise.resolve();
     },
 
+    /* Audio-over-WebSocket relay has no real transport in mock mode. */
+    sendAudioFrame(buf)  {},
+    onAudioFrame(fn)     {},
+
     simulateIncomingCall(contact) {
       if (state.call) return Promise.reject(new Error('A call is already in progress'));
       this._timer = setTimeout(() => {

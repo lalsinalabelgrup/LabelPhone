@@ -1761,7 +1761,30 @@
       }
     </script>
     <script src="js/services/telephonyGatewayClient.js"></script>
+    <script src="js/audio/g711.js?v=2"></script>
+    <script src="js/services/audioManager.js?v=2"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
+    <script>
+      /* TEMPORARY diagnostic — exposes the backend RTP test-signal commands
+         (already implemented in telephonyGatewayClient/wsServer/PromoSoftAdapter/
+         PromoSoftSipClient) to the browser console. Does not add any new
+         behaviour — only calls the existing debugAudioTest/debugAudioTestStop
+         methods. Remove once the audio investigation is closed. */
+      window.audioDebug = {
+        silence() {
+          console.log('[AUDIO DEBUG] silence');
+          return telephonyGatewayClient.debugAudioTest('silence');
+        },
+        tone() {
+          console.log('[AUDIO DEBUG] tone');
+          return telephonyGatewayClient.debugAudioTest('tone');
+        },
+        stop() {
+          console.log('[AUDIO DEBUG] stop');
+          return telephonyGatewayClient.debugAudioTestStop();
+        },
+      };
+    </script>
   </body>
 </html>

@@ -138,6 +138,7 @@ const App = (() => {
       audioService.stopRingback();
       audioService.stopRingtone();
       audioService.playConnected();
+      AudioManager.start();
 
       const call = telephonyGatewayClient.getState().call;
 
@@ -187,6 +188,7 @@ const App = (() => {
       audioService.stopRingback();
       audioService.stopRingtone();
       audioService.playHangup();
+      AudioManager.stop();
       UI.hideCallScreen();
       UI.hideIncomingScreen();
       UI.showScreen('screenKeypad');
@@ -212,11 +214,34 @@ const App = (() => {
       _closeTransferSheet();
       audioService.stopRingback();
       audioService.stopRingtone();
+      AudioManager.stop();
       UI.hideCallScreen();
       UI.hideIncomingScreen();
       UI.showScreen('screenKeypad');
       console.log('[app] failed: UI reset executed — returned to screenKeypad');
       _addHistoryEntry({ ...data, reason: data.reason || 'failed' });
+    });
+
+    /* missed covers: incoming call cancelled/timed out before it was answered.
+       Same teardown as failed — the incoming screen must not stay stuck. */
+    telephonyGatewayClient.on("missed", (data) => {
+      console.log(
+        '[app] missed event',
+        '| event.callId:', data.callId,
+        '| direction:', data.direction,
+        '| number:', data.number,
+      );
+      _cancelAutoAnswer();
+      _closeIncallDialpad();
+      _closeTransferSheet();
+      audioService.stopRingback();
+      audioService.stopRingtone();
+      AudioManager.stop();
+      UI.hideCallScreen();
+      UI.hideIncomingScreen();
+      UI.showScreen('screenKeypad');
+      console.log('[app] missed: UI reset executed — returned to screenKeypad');
+      _addHistoryEntry({ ...data, reason: 'missed' });
     });
 
     telephonyGatewayClient.on("error", (data) => {
