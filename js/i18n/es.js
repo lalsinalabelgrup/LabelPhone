@@ -86,10 +86,12 @@ const I18N = (() => {
       'login.btn_logout':              'Cerrar sesión',
       'toast.login.no_extension':      'Introduce tu extensión',
       'toast.login.no_password':       'Introduce tu contraseña',
-      'toast.login.success':           'Sesión iniciada',
+      'toast.login.success':           'Extensión registrada',
       'toast.login.failed':            'Error al iniciar sesión',
       'toast.logout.success':          'Sesión cerrada',
       'toast.logout.failed':           'Error al cerrar sesión',
+      'login.btn.connecting':          'Conectando a LabelGateway…',
+      'login.btn.registering':         'Registrando extensión…',
 
       /* Settings */
       'settings.title':                'Ajustes',
@@ -140,6 +142,7 @@ const I18N = (() => {
       'toast.disconnected':     'Desconectado del servidor',
       'toast.auto_answer_on':   'Respuesta automática activada',
       'toast.auto_answer_off':  'Respuesta automática desactivada',
+      'toast.mic_denied':       'Micrófono no disponible',
       'auto_answer.countdown':  'Auto respuesta en {s}s',
       'auto_answer.cancel':     'Cancelar',
       'auto_answer.status.on':  'Auto Answer ON',

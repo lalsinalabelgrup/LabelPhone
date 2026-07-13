@@ -71,17 +71,43 @@ const UI = (() => {
      DATA INJECTION (called by app.js after gateway responds)
   ═══════════════════════════════════════════════════════ */
   function setContacts(contacts) {
-    _contacts = contacts || [];
+    if (Array.isArray(contacts)) {
+      _contacts = contacts;
+    } else if (contacts && Array.isArray(contacts.data)) {
+      _contacts = contacts.data;
+    } else if (contacts && Array.isArray(contacts.items)) {
+      _contacts = contacts.items;
+    } else if (contacts && Array.isArray(contacts.results)) {
+      _contacts = contacts.results;
+    } else {
+      _contacts = [];
+    }
     _renderContacts();
     _renderQuickContacts();
   }
 
   function setHistory(items) {
-    _historyItems = items || [];
+    if (Array.isArray(items)) {
+      _historyItems = items;
+    } else if (items && Array.isArray(items.data)) {
+      _historyItems = items.data;
+    } else if (items && Array.isArray(items.items)) {
+      _historyItems = items.items;
+    } else if (items && Array.isArray(items.results)) {
+      _historyItems = items.results;
+    } else {
+      _historyItems = [];
+    }
+    console.log('[UI] setHistory: loaded', _historyItems.length, 'entries');
     _renderHistory(_historyFilter === 'missed');
   }
 
   function prependHistory(entry) {
+    if (!Array.isArray(_historyItems)) {
+      console.warn('[UI] prependHistory: _historyItems was not an array, resetting to []');
+      _historyItems = [];
+    }
+    console.log('[UI] prependHistory:', entry.type, entry.name, entry.number);
     _historyItems.unshift(entry);
     if (entry.type === 'missed') {
       _missedCount++;
@@ -507,11 +533,13 @@ const UI = (() => {
   function filterContacts(q) { _renderContacts(q); }
 
   function getContactById(id) {
-    return _contacts.find(c => c.id === Number(id)) || null;
+    const list = Array.isArray(_contacts) ? _contacts : [];
+    return list.find(c => c.id === Number(id)) || null;
   }
 
   function getContactByPhone(phone) {
-    return _contacts.find(c => c.phone === phone) || null;
+    const list = Array.isArray(_contacts) ? _contacts : [];
+    return list.find(c => c.phone === phone) || null;
   }
 
   /* ════════════════════════════════════════════════════════

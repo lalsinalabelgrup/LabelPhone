@@ -1,922 +1,1790 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LabelPhone</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body class="layout-mobile">
-
-  <!-- ═══════════════════════════════════════════════════════
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabelPhone</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="layout-mobile">
+    <!-- ═══════════════════════════════════════════════════════
        PHONE SHELL
   ══════════════════════════════════════════════════════════ -->
-  <div class="phone-shell">
+    <div class="phone-shell">
+      <!-- Physical side buttons -->
+      <div class="side-btn mute"></div>
+      <div class="side-btn vol-up"></div>
+      <div class="side-btn vol-dn"></div>
+      <div class="side-btn power"></div>
 
-    <!-- Physical side buttons -->
-    <div class="side-btn mute"></div>
-    <div class="side-btn vol-up"></div>
-    <div class="side-btn vol-dn"></div>
-    <div class="side-btn power"></div>
-
-    <!-- ── Phone Screen ──────────────────────────────────── -->
-    <div class="phone-screen">
-
-      <!-- Dynamic Island -->
-      <div class="dynamic-island" id="dynamicIsland">
-        <div class="di-sensors">
-          <div class="di-dot-sensor"></div>
-          <div class="di-camera"></div>
-        </div>
-        <div class="di-call-info" id="diCallInfo">
-          <div class="di-call-left">
-            <div class="di-call-live"></div>
-            <span class="di-call-label" id="diCallLabel">Calling…</span>
+      <!-- ── Phone Screen ──────────────────────────────────── -->
+      <div class="phone-screen">
+        <!-- Dynamic Island -->
+        <div class="dynamic-island" id="dynamicIsland">
+          <div class="di-sensors">
+            <div class="di-dot-sensor"></div>
+            <div class="di-camera"></div>
           </div>
-          <div class="di-call-right">
-            <span class="di-call-timer" id="diCallTimer">0:00</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Bar -->
-      <div class="status-bar">
-        <span class="status-time" id="statusTime">9:41</span>
-        <div class="status-icons">
-          <!-- Signal bars -->
-          <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
-            <rect x="0"  y="8" width="3" height="4" rx="1" fill="currentColor"/>
-            <rect x="4.5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"/>
-            <rect x="9"  y="3" width="3" height="9" rx="1" fill="currentColor"/>
-            <rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/>
-          </svg>
-          <!-- Wi-Fi -->
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-            <path d="M8 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/>
-            <path d="M4.93 7.07A5.5 5.5 0 0 1 8 6c1.19 0 2.3.38 3.2 1.04" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M2.34 4.5A9 9 0 0 1 8 2.5a9 9 0 0 1 5.66 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-            <path d="M0 1.93A12.5 12.5 0 0 1 8 0a12.5 12.5 0 0 1 8 1.93" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-          </svg>
-          <!-- Battery -->
-          <div class="battery-icon">
-            <div class="battery-body">
-              <div class="battery-fill" style="width:72%"></div>
+          <div class="di-call-info" id="diCallInfo">
+            <div class="di-call-left">
+              <div class="di-call-live"></div>
+              <span class="di-call-label" id="diCallLabel">Calling…</span>
             </div>
-            <div class="battery-tip"></div>
+            <div class="di-call-right">
+              <span class="di-call-timer" id="diCallTimer">0:00</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Desktop mode header (hidden in mobile) -->
-      <div class="desktop-header">
-        <div class="dh-brand">
-          <img class="dh-logo" src="assets/logo.svg" alt="LabelPhone">
-          <span class="dh-name">LabelPhone</span>
-        </div>
-        <div class="dh-user" id="dhUserArea">
-          <div class="dh-avatar">
-            <span id="dhInitials">LA</span>
-            <div class="dh-presence-dot" id="dhPresenceDot"></div>
-          </div>
-          <div class="dh-user-info">
-            <span class="dh-user-name" id="dhUserName">Lluis Alsina</span>
-            <span class="dh-user-ext" id="dhUserExt">Ext. 1001</span>
-          </div>
-          <div class="aa-pill" id="autoAnswerBadge">
-            <svg class="aa-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M13 2L4.09 12.97A1 1 0 0 0 5 14.4h6.51L6 22l12.68-12.98A1 1 0 0 0 19 7.6h-6.23L13 2z"/>
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-time" id="statusTime">9:41</span>
+          <div class="status-icons">
+            <!-- Signal bars -->
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+              <rect
+                x="0"
+                y="8"
+                width="3"
+                height="4"
+                rx="1"
+                fill="currentColor"
+              />
+              <rect
+                x="4.5"
+                y="5.5"
+                width="3"
+                height="6.5"
+                rx="1"
+                fill="currentColor"
+              />
+              <rect
+                x="9"
+                y="3"
+                width="3"
+                height="9"
+                rx="1"
+                fill="currentColor"
+              />
+              <rect
+                x="13.5"
+                y="0"
+                width="3"
+                height="12"
+                rx="1"
+                fill="currentColor"
+              />
             </svg>
-            <span id="autoAnswerBadgeText">Auto Answer ON</span>
+            <!-- Wi-Fi -->
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+              <path
+                d="M8 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"
+                fill="currentColor"
+              />
+              <path
+                d="M4.93 7.07A5.5 5.5 0 0 1 8 6c1.19 0 2.3.38 3.2 1.04"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                fill="none"
+              />
+              <path
+                d="M2.34 4.5A9 9 0 0 1 8 2.5a9 9 0 0 1 5.66 2"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                fill="none"
+              />
+              <path
+                d="M0 1.93A12.5 12.5 0 0 1 8 0a12.5 12.5 0 0 1 8 1.93"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                fill="none"
+              />
+            </svg>
+            <!-- Battery -->
+            <div class="battery-icon">
+              <div class="battery-body">
+                <div class="battery-fill" style="width: 72%"></div>
+              </div>
+              <div class="battery-tip"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ── Screen Container ─────────────────────────────── -->
-      <div class="screen-container">
-
-        <!-- ── DIALER SCREEN ──────────────────────────────── -->
-        <div class="screen active" id="screenKeypad">
-          <div class="screen-scroll">
-
-            <!-- Auto Answer status banner (mobile / compact modes) -->
-            <div class="aa-banner" id="autoAnswerBadgeMobile">
-              <svg class="aa-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M13 2L4.09 12.97A1 1 0 0 0 5 14.4h6.51L6 22l12.68-12.98A1 1 0 0 0 19 7.6h-6.23L13 2z"/>
+        <!-- Desktop mode header (hidden in mobile) -->
+        <div class="desktop-header">
+          <div class="dh-brand">
+            <img class="dh-logo" src="assets/logo.svg" alt="LabelPhone" />
+            <span class="dh-name">LabelPhone</span>
+          </div>
+          <div class="dh-user" id="dhUserArea">
+            <div class="dh-avatar">
+              <span id="dhInitials">LA</span>
+              <div class="dh-presence-dot" id="dhPresenceDot"></div>
+            </div>
+            <div class="dh-user-info">
+              <span class="dh-user-name" id="dhUserName">Lluis Alsina</span>
+              <span class="dh-user-ext" id="dhUserExt">Ext. 1001</span>
+            </div>
+            <div class="aa-pill" id="autoAnswerBadge">
+              <svg
+                class="aa-icon"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M13 2L4.09 12.97A1 1 0 0 0 5 14.4h6.51L6 22l12.68-12.98A1 1 0 0 0 19 7.6h-6.23L13 2z"
+                />
               </svg>
-              <span id="autoAnswerBannerText">Auto Answer ON</span>
+              <span id="autoAnswerBadgeText">Auto Answer ON</span>
             </div>
+          </div>
+        </div>
 
-            <!-- Quick contacts -->
-            <div class="quick-contacts" id="quickContacts">
-              <!-- Populated by ui.js -->
-            </div>
-
-            <!-- Dialer display -->
-            <div class="dialer-display">
-              <div class="dialer-digits" id="dialerDigits"></div>
-              <button class="dialer-backspace hidden" id="dialerBackspace" aria-label="Delete">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-                  <line x1="18" y1="9" x2="13" y2="14"/>
-                  <line x1="13" y1="9" x2="18" y2="14"/>
+        <!-- ── Screen Container ─────────────────────────────── -->
+        <div class="screen-container">
+          <!-- ── DIALER SCREEN ──────────────────────────────── -->
+          <div class="screen active" id="screenKeypad">
+            <div class="screen-scroll">
+              <!-- Auto Answer status banner (mobile / compact modes) -->
+              <div class="aa-banner" id="autoAnswerBadgeMobile">
+                <svg
+                  class="aa-icon"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M13 2L4.09 12.97A1 1 0 0 0 5 14.4h6.51L6 22l12.68-12.98A1 1 0 0 0 19 7.6h-6.23L13 2z"
+                  />
                 </svg>
-              </button>
-            </div>
+                <span id="autoAnswerBannerText">Auto Answer ON</span>
+              </div>
 
-            <!-- Keypad -->
-            <div class="keypad-grid" id="keypadGrid">
-              <button class="key-btn" data-digit="1">
-                <span class="key-main">1</span><span class="key-sub"></span>
-              </button>
-              <button class="key-btn" data-digit="2">
-                <span class="key-main">2</span><span class="key-sub">ABC</span>
-              </button>
-              <button class="key-btn" data-digit="3">
-                <span class="key-main">3</span><span class="key-sub">DEF</span>
-              </button>
-              <button class="key-btn" data-digit="4">
-                <span class="key-main">4</span><span class="key-sub">GHI</span>
-              </button>
-              <button class="key-btn" data-digit="5">
-                <span class="key-main">5</span><span class="key-sub">JKL</span>
-              </button>
-              <button class="key-btn" data-digit="6">
-                <span class="key-main">6</span><span class="key-sub">MNO</span>
-              </button>
-              <button class="key-btn" data-digit="7">
-                <span class="key-main">7</span><span class="key-sub">PQRS</span>
-              </button>
-              <button class="key-btn" data-digit="8">
-                <span class="key-main">8</span><span class="key-sub">TUV</span>
-              </button>
-              <button class="key-btn" data-digit="9">
-                <span class="key-main">9</span><span class="key-sub">WXYZ</span>
-              </button>
-              <button class="key-btn" data-digit="*">
-                <span class="key-main">*</span><span class="key-sub"></span>
-              </button>
-              <button class="key-btn" data-digit="0">
-                <span class="key-main">0</span><span class="key-sub">+</span>
-              </button>
-              <button class="key-btn" data-digit="#">
-                <span class="key-main">#</span><span class="key-sub"></span>
-              </button>
-            </div>
+              <!-- Quick contacts -->
+              <div class="quick-contacts" id="quickContacts">
+                <!-- Populated by ui.js -->
+              </div>
 
-            <!-- Keypad actions row -->
-            <div class="keypad-actions">
-              <!-- Voicemail shortcut -->
-              <button class="keypad-side-btn" id="btnVoicemail" aria-label="Voicemail">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="5" cy="13" r="4"/>
-                  <circle cx="19" cy="13" r="4"/>
-                  <line x1="5" y1="17" x2="19" y2="17"/>
-                </svg>
-              </button>
+              <!-- Dialer display -->
+              <div class="dialer-display">
+                <div class="dialer-digits" id="dialerDigits"></div>
+                <button
+                  class="dialer-backspace hidden"
+                  id="dialerBackspace"
+                  aria-label="Delete"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"
+                    />
+                    <line x1="18" y1="9" x2="13" y2="14" />
+                    <line x1="13" y1="9" x2="18" y2="14" />
+                  </svg>
+                </button>
+              </div>
 
-              <!-- Call button -->
-              <button class="call-btn" id="btnCall" aria-label="Call">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/>
-                </svg>
-              </button>
+              <!-- Keypad -->
+              <div class="keypad-grid" id="keypadGrid">
+                <button class="key-btn" data-digit="1">
+                  <span class="key-main">1</span><span class="key-sub"></span>
+                </button>
+                <button class="key-btn" data-digit="2">
+                  <span class="key-main">2</span
+                  ><span class="key-sub">ABC</span>
+                </button>
+                <button class="key-btn" data-digit="3">
+                  <span class="key-main">3</span
+                  ><span class="key-sub">DEF</span>
+                </button>
+                <button class="key-btn" data-digit="4">
+                  <span class="key-main">4</span
+                  ><span class="key-sub">GHI</span>
+                </button>
+                <button class="key-btn" data-digit="5">
+                  <span class="key-main">5</span
+                  ><span class="key-sub">JKL</span>
+                </button>
+                <button class="key-btn" data-digit="6">
+                  <span class="key-main">6</span
+                  ><span class="key-sub">MNO</span>
+                </button>
+                <button class="key-btn" data-digit="7">
+                  <span class="key-main">7</span
+                  ><span class="key-sub">PQRS</span>
+                </button>
+                <button class="key-btn" data-digit="8">
+                  <span class="key-main">8</span
+                  ><span class="key-sub">TUV</span>
+                </button>
+                <button class="key-btn" data-digit="9">
+                  <span class="key-main">9</span
+                  ><span class="key-sub">WXYZ</span>
+                </button>
+                <button class="key-btn" data-digit="*">
+                  <span class="key-main">*</span><span class="key-sub"></span>
+                </button>
+                <button class="key-btn" data-digit="0">
+                  <span class="key-main">0</span><span class="key-sub">+</span>
+                </button>
+                <button class="key-btn" data-digit="#">
+                  <span class="key-main">#</span><span class="key-sub"></span>
+                </button>
+              </div>
 
-              <!-- Contacts shortcut -->
-              <button class="keypad-side-btn" id="btnContactsShortcut" aria-label="Contacts">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-              </button>
-            </div>
+              <!-- Keypad actions row -->
+              <div class="keypad-actions">
+                <!-- Voicemail shortcut -->
+                <button
+                  class="keypad-side-btn"
+                  id="btnVoicemail"
+                  aria-label="Voicemail"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="5" cy="13" r="4" />
+                    <circle cx="19" cy="13" r="4" />
+                    <line x1="5" y1="17" x2="19" y2="17" />
+                  </svg>
+                </button>
 
-          </div><!-- /screen-scroll -->
-        </div><!-- /#screenKeypad -->
+                <!-- Call button -->
+                <button class="call-btn" id="btnCall" aria-label="Call">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"
+                    />
+                  </svg>
+                </button>
 
-
-        <!-- ── HISTORY SCREEN ─────────────────────────────── -->
-        <div class="screen" id="screenHistory">
-          <div class="history-header">
-            <h1 class="large-title" data-i18n="screen.recents">Recents</h1>
-            <div class="filter-bar">
-              <button class="filter-btn active" id="filterAll" data-i18n="history.filter.all">All</button>
-              <button class="filter-btn" id="filterMissed" data-i18n="history.filter.missed">Missed</button>
-            </div>
-          </div>
-          <div class="history-list" id="historyList">
-            <!-- Populated by ui.js -->
-          </div>
-        </div><!-- /#screenHistory -->
-
-
-        <!-- ── CONTACTS SCREEN ────────────────────────────── -->
-        <div class="screen" id="screenContacts">
-          <div class="contacts-header">
-            <h1 class="large-title" data-i18n="screen.contacts">Contacts</h1>
-          </div>
-          <div class="search-wrap">
-            <div class="search-bar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input class="search-input" id="contactSearch" type="search" placeholder="Search" data-i18n-ph="contacts.search" autocomplete="off" spellcheck="false">
-            </div>
-          </div>
-          <div class="contacts-list-wrap">
-            <div class="contacts-list" id="contactsList">
-              <!-- Populated by ui.js -->
-            </div>
-            <div class="alpha-index" id="alphaIndex">
-              <!-- Populated by ui.js -->
-            </div>
-          </div>
-        </div><!-- /#screenContacts -->
-
-
-        <!-- ── SETTINGS SCREEN ────────────────────────────── -->
-        <div class="screen" id="screenSettings">
-          <div class="screen-scroll">
-            <div class="screen-header" style="padding-bottom:0">
-              <h1 class="large-title" data-i18n="screen.settings">Settings</h1>
-            </div>
-
-            <!-- Profile card -->
-            <div class="settings-profile">
-              <div class="settings-avatar" id="settingsAvatar">LA</div>
-              <div>
-                <div class="settings-user-name" id="settingsUserName">Lluis Alsina</div>
-                <div class="settings-user-ext" id="settingsUserExt">Ext. 1001 · LabelGrup</div>
-                <div class="presence-badge" id="presenceBadge">
-                  <div class="presence-dot-sm available" id="presenceDotSm"></div>
-                  <span id="presenceLabel">Available</span>
-                </div>
+                <!-- Contacts shortcut -->
+                <button
+                  class="keypad-side-btn"
+                  id="btnContactsShortcut"
+                  aria-label="Contacts"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </button>
               </div>
             </div>
+            <!-- /screen-scroll -->
+          </div>
+          <!-- /#screenKeypad -->
 
-            <!-- Account -->
-            <div class="settings-section">
-              <div class="settings-section-label">Account</div>
-              <div class="settings-group">
-                <div class="settings-cell" id="presenceCell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#0a84ff">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0 1 18 0"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Presence</span>
+          <!-- ── HISTORY SCREEN ─────────────────────────────── -->
+          <div class="screen" id="screenHistory">
+            <div class="history-header">
+              <h1 class="large-title" data-i18n="screen.recents">Recents</h1>
+              <div class="filter-bar">
+                <button
+                  class="filter-btn active"
+                  id="filterAll"
+                  data-i18n="history.filter.all"
+                >
+                  All
+                </button>
+                <button
+                  class="filter-btn"
+                  id="filterMissed"
+                  data-i18n="history.filter.missed"
+                >
+                  Missed
+                </button>
+              </div>
+            </div>
+            <div class="history-list" id="historyList">
+              <!-- Populated by ui.js -->
+            </div>
+          </div>
+          <!-- /#screenHistory -->
+
+          <!-- ── CONTACTS SCREEN ────────────────────────────── -->
+          <div class="screen" id="screenContacts">
+            <div class="contacts-header">
+              <h1 class="large-title" data-i18n="screen.contacts">Contacts</h1>
+            </div>
+            <div class="search-wrap">
+              <div class="search-bar">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  class="search-input"
+                  id="contactSearch"
+                  type="search"
+                  placeholder="Search"
+                  data-i18n-ph="contacts.search"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+            </div>
+            <div class="contacts-list-wrap">
+              <div class="contacts-list" id="contactsList">
+                <!-- Populated by ui.js -->
+              </div>
+              <div class="alpha-index" id="alphaIndex">
+                <!-- Populated by ui.js -->
+              </div>
+            </div>
+          </div>
+          <!-- /#screenContacts -->
+
+          <!-- ── SETTINGS SCREEN ────────────────────────────── -->
+          <div class="screen" id="screenSettings">
+            <div class="screen-scroll">
+              <div class="screen-header" style="padding-bottom: 0">
+                <h1 class="large-title" data-i18n="screen.settings">
+                  Settings
+                </h1>
+              </div>
+
+              <!-- Profile card -->
+              <div class="settings-profile">
+                <div class="settings-avatar" id="settingsAvatar">LA</div>
+                <div>
+                  <div class="settings-user-name" id="settingsUserName">
+                    Lluis Alsina
                   </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value" id="presenceValue">Available</span>
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  <div class="settings-user-ext" id="settingsUserExt">
+                    Ext. 1001 · LabelGrup
                   </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#636366">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Extension</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value" id="settingsExtValue">1001</span>
-                  </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#5e5ce6">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Organization</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value" id="settingsOrgValue">LabelGrup</span>
+                  <div class="presence-badge" id="presenceBadge">
+                    <div
+                      class="presence-dot-sm available"
+                      id="presenceDotSm"
+                    ></div>
+                    <span id="presenceLabel">Available</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Login / Registration -->
-            <div class="settings-section">
-              <div class="settings-section-label" data-i18n="settings.section.login">Acceso</div>
-              <div class="settings-group">
-                <div class="settings-login-form">
-
-                  <div class="settings-login-field">
-                    <label class="settings-login-label" for="loginExtension" data-i18n="login.extension">Extensión</label>
-                    <input type="text" id="loginExtension" class="settings-login-input"
-                           inputmode="numeric" autocomplete="username"
-                           data-i18n-ph="login.extension.ph" placeholder="Ej. 1001">
-                  </div>
-
-                  <div class="settings-login-field">
-                    <label class="settings-login-label" for="loginPassword" data-i18n="login.password">Contraseña</label>
-                    <input type="password" id="loginPassword" class="settings-login-input"
-                           autocomplete="current-password"
-                           data-i18n-ph="login.password.ph" placeholder="••••••••">
-                  </div>
-
-                  <div class="settings-login-field">
-                    <label class="settings-login-label" for="loginDisplayName" data-i18n="login.display_name">Nombre (opcional)</label>
-                    <input type="text" id="loginDisplayName" class="settings-login-input"
-                           autocomplete="name"
-                           data-i18n-ph="login.display_name.ph" placeholder="Ej. Lluis Alsina">
-                  </div>
-
-                  <div class="settings-login-toggle-row">
-                    <span class="settings-login-toggle-label" data-i18n="login.remember_extension">Recordar extensión</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="rememberExtension">
-                      <div class="toggle-track"></div>
-                      <div class="toggle-thumb"></div>
-                    </label>
-                  </div>
-
-                  <div class="settings-login-toggle-row">
-                    <span class="settings-login-toggle-label" data-i18n="login.remember_password">Recordar contraseña</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="rememberPassword">
-                      <div class="toggle-track"></div>
-                      <div class="toggle-thumb"></div>
-                    </label>
-                  </div>
-
-                  <div class="settings-login-actions">
-                    <button class="settings-login-btn" id="btnLogin"
-                            data-i18n="login.btn_login">Registrar</button>
-                    <button class="settings-login-btn settings-login-btn--logout" id="btnLogout"
-                            data-i18n="login.btn_logout">Cerrar sesión</button>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            <!-- Audio -->
-            <div class="settings-section">
-              <div class="settings-section-label">Audio</div>
-              <div class="settings-group">
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#ff9f0a">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              <!-- Account -->
+              <div class="settings-section">
+                <div class="settings-section-label">Account</div>
+                <div class="settings-group">
+                  <div class="settings-cell" id="presenceCell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #0a84ff"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <circle cx="12" cy="8" r="5" />
+                          <path d="M3 21a9 9 0 0 1 18 0" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">Presence</span>
                     </div>
-                    <span class="settings-cell-label">DTMF Tones</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="dtmfToggle" checked>
-                      <div class="toggle-track"></div>
-                      <div class="toggle-thumb"></div>
-                    </label>
-                  </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#30b0c7">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Ringtone</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value">Default</span>
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#30d158">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/>
-                        <polyline points="16 6 18 8 22 4"/>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value" id="presenceValue"
+                        >Available</span
+                      >
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </div>
-                    <span class="settings-cell-label" data-i18n="settings.auto_answer">Respuesta automática</span>
                   </div>
-                  <div class="settings-cell-right">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="autoAnswerToggle">
-                      <div class="toggle-track"></div>
-                      <div class="toggle-thumb"></div>
-                    </label>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #636366"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="5" y="2" width="14" height="20" rx="2" />
+                          <line x1="12" y1="18" x2="12" y2="18" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">Extension</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value" id="settingsExtValue"
+                        >1001</span
+                      >
+                    </div>
+                  </div>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #5e5ce6"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                          />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">Organization</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value" id="settingsOrgValue"
+                        >LabelGrup</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Login / Registration -->
+              <div class="settings-section">
+                <div
+                  class="settings-section-label"
+                  data-i18n="settings.section.login"
+                >
+                  Acceso
+                </div>
+                <div class="settings-group">
+                  <div class="settings-login-form">
+                    <div class="settings-login-field">
+                      <label
+                        class="settings-login-label"
+                        for="loginExtension"
+                        data-i18n="login.extension"
+                        >Extensión</label
+                      >
+                      <input
+                        type="text"
+                        id="loginExtension"
+                        class="settings-login-input"
+                        inputmode="numeric"
+                        autocomplete="username"
+                        data-i18n-ph="login.extension.ph"
+                        placeholder="Ej. 1001"
+                      />
+                    </div>
+
+                    <div class="settings-login-field">
+                      <label
+                        class="settings-login-label"
+                        for="loginPassword"
+                        data-i18n="login.password"
+                        >Contraseña</label
+                      >
+                      <input
+                        type="password"
+                        id="loginPassword"
+                        class="settings-login-input"
+                        autocomplete="current-password"
+                        data-i18n-ph="login.password.ph"
+                        placeholder="••••••••"
+                      />
+                    </div>
+
+                    <div class="settings-login-field">
+                      <label
+                        class="settings-login-label"
+                        for="loginDisplayName"
+                        data-i18n="login.display_name"
+                        >Nombre (opcional)</label
+                      >
+                      <input
+                        type="text"
+                        id="loginDisplayName"
+                        class="settings-login-input"
+                        autocomplete="name"
+                        data-i18n-ph="login.display_name.ph"
+                        placeholder="Ej. Lluis Alsina"
+                      />
+                    </div>
+
+                    <div class="settings-login-toggle-row">
+                      <span
+                        class="settings-login-toggle-label"
+                        data-i18n="login.remember_extension"
+                        >Recordar extensión</span
+                      >
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="rememberExtension" />
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                      </label>
+                    </div>
+
+                    <div class="settings-login-toggle-row">
+                      <span
+                        class="settings-login-toggle-label"
+                        data-i18n="login.remember_password"
+                        >Recordar contraseña</span
+                      >
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="rememberPassword" />
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                      </label>
+                    </div>
+
+                    <div class="settings-login-actions">
+                      <button
+                        class="settings-login-btn"
+                        id="btnLogin"
+                        data-i18n="login.btn_login"
+                      >
+                        Registrar
+                      </button>
+                      <button
+                        class="settings-login-btn settings-login-btn--logout"
+                        id="btnLogout"
+                        data-i18n="login.btn_logout"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audio -->
+              <div class="settings-section">
+                <div class="settings-section-label">Audio</div>
+                <div class="settings-group">
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #ff9f0a"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">DTMF Tones</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="dtmfToggle" checked />
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #30b0c7"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M9 18V5l12-2v13" />
+                          <circle cx="6" cy="18" r="3" />
+                          <circle cx="18" cy="16" r="3" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">Ringtone</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value">Default</span>
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #30d158"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"
+                          />
+                          <polyline points="16 6 18 8 22 4" />
+                        </svg>
+                      </div>
+                      <span
+                        class="settings-cell-label"
+                        data-i18n="settings.auto_answer"
+                        >Respuesta automática</span
+                      >
+                    </div>
+                    <div class="settings-cell-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="autoAnswerToggle" />
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Appearance -->
+              <div class="settings-section">
+                <div class="settings-section-label">Appearance</div>
+                <div class="settings-group">
+                  <div class="settings-cell" style="flex-wrap: wrap; gap: 12px">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="
+                          background: #1c1c1e;
+                          border: 1px solid rgba(255, 255, 255, 0.14);
+                        "
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="5" y="2" width="14" height="20" rx="2" />
+                          <line x1="12" y1="18" x2="12" y2="18" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label"></span>
+                    </div>
+                    <div class="segmented-control" id="modeSegmented">
+                      <button class="seg-btn active" data-mode="layout-mobile">
+                        Mobile
+                      </button>
+                      <button class="seg-btn" data-mode="layout-compact">
+                        Compact
+                      </button>
+                      <button class="seg-btn" data-mode="layout-desktop">
+                        Desktop
+                      </button>
+                      <button class="seg-btn" data-mode="layout-sidebar">
+                        Sidebar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Integrations -->
+              <div class="settings-section">
+                <div class="settings-section-label">Integrations</div>
+                <div class="settings-group">
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #34c759"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6z"
+                          />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">SIP Server</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value">Coming soon</span>
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #0a84ff"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M18 20V10" />
+                          <path d="M12 20V4" />
+                          <path d="M6 20v-6" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">REST API</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value">Coming soon</span>
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #5e5ce6"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="16 18 22 12 16 6" />
+                          <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">CTI SDK</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value">Coming soon</span>
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Developer -->
+              <div class="settings-section">
+                <div class="settings-section-label">Developer</div>
+                <div class="settings-group">
+                  <div class="settings-cell dev-btn" id="btnSimulateIncoming">
+                    <div class="settings-cell-left">
+                      <div class="settings-cell-icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16z"
+                          />
+                          <path d="M14.05 3a9 9 0 0 1 6.95 6.95" />
+                          <path d="M14.05 7A5 5 0 0 1 18 11" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label"
+                        >Simulate Incoming Call</span
+                      >
+                    </div>
+                    <div class="settings-cell-right">
+                      <svg
+                        class="chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- About -->
+              <div class="settings-section">
+                <div class="settings-section-label">About</div>
+                <div class="settings-group">
+                  <div class="settings-cell">
+                    <div class="settings-cell-left">
+                      <div
+                        class="settings-cell-icon"
+                        style="background: #636366"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                      </div>
+                      <span class="settings-cell-label">LabelPhone</span>
+                    </div>
+                    <div class="settings-cell-right">
+                      <span class="settings-cell-value">v2.0.0</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+            <!-- /screen-scroll -->
+          </div>
+          <!-- /#screenSettings -->
 
-            <!-- Appearance -->
-            <div class="settings-section">
-              <div class="settings-section-label">Appearance</div>
-              <div class="settings-group">
-                <div class="settings-cell" style="flex-wrap:wrap; gap:12px">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#1c1c1e; border: 1px solid rgba(255,255,255,.14)">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Display Mode</span>
-                  </div>
-                  <div class="segmented-control" id="modeSegmented">
-                    <button class="seg-btn active" data-mode="layout-mobile">Mobile</button>
-                    <button class="seg-btn" data-mode="layout-compact">Compact</button>
-                    <button class="seg-btn" data-mode="layout-desktop">Desktop</button>
-                    <button class="seg-btn" data-mode="layout-sidebar">Sidebar</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Integrations -->
-            <div class="settings-section">
-              <div class="settings-section-label">Integrations</div>
-              <div class="settings-group">
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#34c759">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.2 8.4c.5.38.8.97.8 1.6v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V10a2 2 0 0 1 .8-1.6l8-6a2 2 0 0 1 2.4 0l8 6z"/></svg>
-                    </div>
-                    <span class="settings-cell-label">SIP Server</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value">Coming soon</span>
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#0a84ff">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-                    </div>
-                    <span class="settings-cell-label">REST API</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value">Coming soon</span>
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#5e5ce6">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                    </div>
-                    <span class="settings-cell-label">CTI SDK</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value">Coming soon</span>
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Developer -->
-            <div class="settings-section">
-              <div class="settings-section-label">Developer</div>
-              <div class="settings-group">
-                <div class="settings-cell dev-btn" id="btnSimulateIncoming">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16z"/><path d="M14.05 3a9 9 0 0 1 6.95 6.95"/><path d="M14.05 7A5 5 0 0 1 18 11"/></svg>
-                    </div>
-                    <span class="settings-cell-label">Simulate Incoming Call</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- About -->
-            <div class="settings-section">
-              <div class="settings-section-label">About</div>
-              <div class="settings-group">
-                <div class="settings-cell">
-                  <div class="settings-cell-left">
-                    <div class="settings-cell-icon" style="background:#636366">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    </div>
-                    <span class="settings-cell-label">LabelPhone</span>
-                  </div>
-                  <div class="settings-cell-right">
-                    <span class="settings-cell-value">v2.0.0</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- /screen-scroll -->
-        </div><!-- /#screenSettings -->
-
-
-        <!-- ═══════════════════════════════════════════════
+          <!-- ═══════════════════════════════════════════════
              ACTIVE CALL OVERLAY
         ══════════════════════════════════════════════════ -->
-        <div class="screen overlay" id="screenCall">
-          <div class="call-bg" id="callBg"></div>
-          <div class="call-content">
-            <div class="call-top">
-              <span class="call-top-label" id="callStatusLabel">Calling…</span>
-              <div class="call-signal-wrap">
-                <div class="call-sig-bar b1 lit"></div>
-                <div class="call-sig-bar b2 lit"></div>
-                <div class="call-sig-bar b3 lit"></div>
-                <div class="call-sig-bar b4 lit"></div>
-                <div class="call-sig-bar b5"></div>
+          <div class="screen overlay" id="screenCall">
+            <div class="call-bg" id="callBg"></div>
+            <div class="call-content">
+              <div class="call-top">
+                <span class="call-top-label" id="callStatusLabel"
+                  >Calling…</span
+                >
+                <div class="call-signal-wrap">
+                  <div class="call-sig-bar b1 lit"></div>
+                  <div class="call-sig-bar b2 lit"></div>
+                  <div class="call-sig-bar b3 lit"></div>
+                  <div class="call-sig-bar b4 lit"></div>
+                  <div class="call-sig-bar b5"></div>
+                </div>
               </div>
-            </div>
 
-            <!-- Avatar -->
-            <div class="call-avatar-wrap">
-              <div class="call-ring r1"></div>
-              <div class="call-ring r2"></div>
-              <div class="call-ring r3"></div>
-              <div class="call-avatar" id="callAvatar">?</div>
-            </div>
+              <!-- Avatar -->
+              <div class="call-avatar-wrap">
+                <div class="call-ring r1"></div>
+                <div class="call-ring r2"></div>
+                <div class="call-ring r3"></div>
+                <div class="call-avatar" id="callAvatar">?</div>
+              </div>
 
-            <!-- Contact info -->
-            <div class="call-contact-name" id="callContactName">Unknown</div>
-            <div class="call-company" id="callCompany"></div>
-            <div class="call-number-loc" id="callNumber"></div>
-            <div class="call-number-loc" id="callLocation"></div>
-            <div class="call-timer-display" id="callTimer">Calling…</div>
+              <!-- Contact info -->
+              <div class="call-contact-name" id="callContactName">Unknown</div>
+              <div class="call-company" id="callCompany"></div>
+              <div class="call-number-loc" id="callNumber"></div>
+              <div class="call-number-loc" id="callLocation"></div>
+              <div class="call-timer-display" id="callTimer">Calling…</div>
 
-            <!-- Controls grid -->
-            <div class="call-controls-grid">
-              <button class="call-ctrl" id="btnCallMute"
-                      aria-label="Silenciar micrófono" aria-pressed="false"
-                      data-tooltip="Silencio">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.mute">Silencio</span>
-              </button>
-              <button class="call-ctrl" id="btnCallSpeaker"
-                      aria-label="Activar altavoz" aria-pressed="false"
-                      data-tooltip="Altavoz">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.speaker">Altavoz</span>
-              </button>
-              <button class="call-ctrl" id="btnCallHold"
-                      aria-label="Poner en espera" aria-pressed="false"
-                      data-tooltip="Espera">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="6" y="4" width="4" height="16"/>
-                    <rect x="14" y="4" width="4" height="16"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.hold">Espera</span>
-              </button>
-              <button class="call-ctrl" id="btnCallKeypad"
-                      aria-label="Abrir teclado DTMF"
-                      data-tooltip="Teclado">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="5" height="5" rx="1"/>
-                    <rect x="9.5" y="3" width="5" height="5" rx="1"/>
-                    <rect x="16" y="3" width="5" height="5" rx="1"/>
-                    <rect x="3" y="9.5" width="5" height="5" rx="1"/>
-                    <rect x="9.5" y="9.5" width="5" height="5" rx="1"/>
-                    <rect x="16" y="9.5" width="5" height="5" rx="1"/>
-                    <rect x="3" y="16" width="5" height="5" rx="1"/>
-                    <rect x="9.5" y="16" width="5" height="5" rx="1"/>
-                    <rect x="16" y="16" width="5" height="5" rx="1"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.keypad">Teclado</span>
-              </button>
-              <button class="call-ctrl" id="btnCallTransfer"
-                      aria-label="Transferir llamada"
-                      data-tooltip="Transferir">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="17 1 21 5 17 9"/>
-                    <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                    <polyline points="7 23 3 19 7 15"/>
-                    <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.transfer">Transferir</span>
-              </button>
-              <button class="call-ctrl" id="btnCallConference"
-                      aria-label="Conferencia"
-                      data-tooltip="Conferencia">
-                <div class="call-ctrl-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.conference">Conferencia</span>
-              </button>
-              <button class="call-ctrl" id="btnCallRecord"
-                      aria-label="Grabar llamada"
-                      data-tooltip="Grabar">
-                <div class="call-ctrl-circle call-ctrl-circle--record">
-                  <svg viewBox="0 0 24 24" width="26" height="26">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="5" fill="currentColor"/>
-                  </svg>
-                </div>
-                <span class="call-ctrl-label" data-i18n="call.ctrl.record">Grabar</span>
-              </button>
-            </div>
+              <!-- Controls grid -->
+              <div class="call-controls-grid">
+                <button
+                  class="call-ctrl"
+                  id="btnCallMute"
+                  aria-label="Silenciar micrófono"
+                  aria-pressed="false"
+                  data-tooltip="Silencio"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"
+                      />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.mute"
+                    >Silencio</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallSpeaker"
+                  aria-label="Activar altavoz"
+                  aria-pressed="false"
+                  data-tooltip="Altavoz"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.speaker"
+                    >Altavoz</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallHold"
+                  aria-label="Poner en espera"
+                  aria-pressed="false"
+                  data-tooltip="Espera"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="6" y="4" width="4" height="16" />
+                      <rect x="14" y="4" width="4" height="16" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.hold"
+                    >Espera</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallKeypad"
+                  aria-label="Abrir teclado DTMF"
+                  data-tooltip="Teclado"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="3" y="3" width="5" height="5" rx="1" />
+                      <rect x="9.5" y="3" width="5" height="5" rx="1" />
+                      <rect x="16" y="3" width="5" height="5" rx="1" />
+                      <rect x="3" y="9.5" width="5" height="5" rx="1" />
+                      <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+                      <rect x="16" y="9.5" width="5" height="5" rx="1" />
+                      <rect x="3" y="16" width="5" height="5" rx="1" />
+                      <rect x="9.5" y="16" width="5" height="5" rx="1" />
+                      <rect x="16" y="16" width="5" height="5" rx="1" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.keypad"
+                    >Teclado</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallTransfer"
+                  aria-label="Transferir llamada"
+                  data-tooltip="Transferir"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="17 1 21 5 17 9" />
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                      <polyline points="7 23 3 19 7 15" />
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.transfer"
+                    >Transferir</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallConference"
+                  aria-label="Conferencia"
+                  data-tooltip="Conferencia"
+                >
+                  <div class="call-ctrl-circle">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.conference"
+                    >Conferencia</span
+                  >
+                </button>
+                <button
+                  class="call-ctrl"
+                  id="btnCallRecord"
+                  aria-label="Grabar llamada"
+                  data-tooltip="Grabar"
+                >
+                  <div class="call-ctrl-circle call-ctrl-circle--record">
+                    <svg viewBox="0 0 24 24" width="26" height="26">
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <circle cx="12" cy="12" r="5" fill="currentColor" />
+                    </svg>
+                  </div>
+                  <span class="call-ctrl-label" data-i18n="call.ctrl.record"
+                    >Grabar</span
+                  >
+                </button>
+              </div>
 
-            <!-- End call -->
-            <div class="end-call-row">
-              <button class="end-call-btn" id="btnEndCall" aria-label="End call">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08A.996.996 0 0 1 0 12.37c0-.28.11-.54.29-.73C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.64c.18.19.29.45.29.73 0 .28-.11.54-.29.73l-2.48 2.48a1 1 0 0 1-.71.29c-.27 0-.52-.1-.7-.28a11.27 11.27 0 0 0-2.67-1.85.994.994 0 0 1-.56-.9v-3.1A15.94 15.94 0 0 0 12 9z"/>
-                </svg>
-              </button>
-            </div>
-
-          </div><!-- /call-content -->
-
-          <!-- ─── In-call DTMF Dialpad (slide-up panel) ─────────────── -->
-          <div class="incall-panel" id="incallDialpad"
-               role="dialog" aria-modal="true"
-               aria-label="Teclado de marcación" aria-hidden="true">
-            <div class="incall-panel-bar"></div>
-            <div class="incall-dialpad-top">
-              <div class="incall-dtmf-display" id="incallDtmfDisplay"></div>
-              <button class="incall-panel-close" id="btnIncallDialpadClose"
-                      aria-label="Cerrar teclado">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-            </div>
-            <div class="keypad-grid incall-keypad-grid" id="incallKeypadGrid">
-              <button class="key-btn" data-digit="1"><span class="key-main">1</span><span class="key-sub">&nbsp;</span></button>
-              <button class="key-btn" data-digit="2"><span class="key-main">2</span><span class="key-sub">ABC</span></button>
-              <button class="key-btn" data-digit="3"><span class="key-main">3</span><span class="key-sub">DEF</span></button>
-              <button class="key-btn" data-digit="4"><span class="key-main">4</span><span class="key-sub">GHI</span></button>
-              <button class="key-btn" data-digit="5"><span class="key-main">5</span><span class="key-sub">JKL</span></button>
-              <button class="key-btn" data-digit="6"><span class="key-main">6</span><span class="key-sub">MNO</span></button>
-              <button class="key-btn" data-digit="7"><span class="key-main">7</span><span class="key-sub">PQRS</span></button>
-              <button class="key-btn" data-digit="8"><span class="key-main">8</span><span class="key-sub">TUV</span></button>
-              <button class="key-btn" data-digit="9"><span class="key-main">9</span><span class="key-sub">WXYZ</span></button>
-              <button class="key-btn" data-digit="*"><span class="key-main">*</span><span class="key-sub">&nbsp;</span></button>
-              <button class="key-btn" data-digit="0"><span class="key-main">0</span><span class="key-sub">+</span></button>
-              <button class="key-btn" data-digit="#"><span class="key-main">#</span><span class="key-sub">&nbsp;</span></button>
-            </div>
-          </div><!-- /incallDialpad -->
-
-          <!-- ─── Transfer Sheet (slide-up panel) ───────────────────── -->
-          <div class="incall-panel" id="transferSheet"
-               role="dialog" aria-modal="true"
-               aria-label="Transferir llamada" aria-hidden="true">
-            <div class="incall-panel-bar"></div>
-            <div class="incall-sheet-title" data-i18n="transfer.title">Transferir llamada</div>
-            <div class="transfer-tabs" role="tablist">
-              <button class="transfer-tab active" id="tabBlind" role="tab"
-                      aria-selected="true" data-panel="panelBlind"
-                      data-i18n="transfer.tab.blind">Ciega</button>
-              <button class="transfer-tab" id="tabAttended" role="tab"
-                      aria-selected="false" data-panel="panelAttended"
-                      data-i18n="transfer.tab.attended">Anunciada</button>
-            </div>
-            <div class="transfer-panel active" id="panelBlind" role="tabpanel">
-              <p class="transfer-hint" data-i18n="transfer.blind.hint">Introduce el número o extensión de destino</p>
-              <div class="transfer-input-wrap">
-                <input type="tel" id="transferDestInput" class="transfer-input"
-                       placeholder="+34 o extensión"
-                       data-i18n-ph="transfer.blind.ph"
-                       autocomplete="tel">
-                <button class="transfer-input-clear" id="btnTransferClear" aria-label="Borrar">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                       stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+              <!-- End call -->
+              <div class="end-call-row">
+                <button
+                  class="end-call-btn"
+                  id="btnEndCall"
+                  aria-label="End call"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08A.996.996 0 0 1 0 12.37c0-.28.11-.54.29-.73C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.64c.18.19.29.45.29.73 0 .28-.11.54-.29.73l-2.48 2.48a1 1 0 0 1-.71.29c-.27 0-.52-.1-.7-.28a11.27 11.27 0 0 0-2.67-1.85.994.994 0 0 1-.56-.9v-3.1A15.94 15.94 0 0 0 12 9z"
+                    />
                   </svg>
                 </button>
               </div>
-              <button class="transfer-confirm" id="btnTransferConfirm"
-                      data-i18n="transfer.blind.confirm">Transferir ahora</button>
             </div>
-            <div class="transfer-panel" id="panelAttended" role="tabpanel">
-              <div class="transfer-attended-soon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                     stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <p data-i18n="transfer.attended.soon">Próximamente</p>
-                <p class="transfer-attended-desc" data-i18n="transfer.attended.desc">Disponible en la siguiente versión</p>
+            <!-- /call-content -->
+
+            <!-- ─── In-call DTMF Dialpad (slide-up panel) ─────────────── -->
+            <div
+              class="incall-panel"
+              id="incallDialpad"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Teclado de marcación"
+              aria-hidden="true"
+            >
+              <div class="incall-panel-bar"></div>
+              <div class="incall-dialpad-top">
+                <div class="incall-dtmf-display" id="incallDtmfDisplay"></div>
+                <button
+                  class="incall-panel-close"
+                  id="btnIncallDialpadClose"
+                  aria-label="Cerrar teclado"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="20"
+                    height="20"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+              </div>
+              <div class="keypad-grid incall-keypad-grid" id="incallKeypadGrid">
+                <button class="key-btn" data-digit="1">
+                  <span class="key-main">1</span
+                  ><span class="key-sub">&nbsp;</span>
+                </button>
+                <button class="key-btn" data-digit="2">
+                  <span class="key-main">2</span
+                  ><span class="key-sub">ABC</span>
+                </button>
+                <button class="key-btn" data-digit="3">
+                  <span class="key-main">3</span
+                  ><span class="key-sub">DEF</span>
+                </button>
+                <button class="key-btn" data-digit="4">
+                  <span class="key-main">4</span
+                  ><span class="key-sub">GHI</span>
+                </button>
+                <button class="key-btn" data-digit="5">
+                  <span class="key-main">5</span
+                  ><span class="key-sub">JKL</span>
+                </button>
+                <button class="key-btn" data-digit="6">
+                  <span class="key-main">6</span
+                  ><span class="key-sub">MNO</span>
+                </button>
+                <button class="key-btn" data-digit="7">
+                  <span class="key-main">7</span
+                  ><span class="key-sub">PQRS</span>
+                </button>
+                <button class="key-btn" data-digit="8">
+                  <span class="key-main">8</span
+                  ><span class="key-sub">TUV</span>
+                </button>
+                <button class="key-btn" data-digit="9">
+                  <span class="key-main">9</span
+                  ><span class="key-sub">WXYZ</span>
+                </button>
+                <button class="key-btn" data-digit="*">
+                  <span class="key-main">*</span
+                  ><span class="key-sub">&nbsp;</span>
+                </button>
+                <button class="key-btn" data-digit="0">
+                  <span class="key-main">0</span><span class="key-sub">+</span>
+                </button>
+                <button class="key-btn" data-digit="#">
+                  <span class="key-main">#</span
+                  ><span class="key-sub">&nbsp;</span>
+                </button>
               </div>
             </div>
-            <button class="incall-sheet-cancel" id="btnTransferCancel"
-                    data-i18n="cancel">Cancelar</button>
-          </div><!-- /transferSheet -->
+            <!-- /incallDialpad -->
 
-        </div><!-- /#screenCall -->
+            <!-- ─── Transfer Sheet (slide-up panel) ───────────────────── -->
+            <div
+              class="incall-panel"
+              id="transferSheet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Transferir llamada"
+              aria-hidden="true"
+            >
+              <div class="incall-panel-bar"></div>
+              <div class="incall-sheet-title" data-i18n="transfer.title">
+                Transferir llamada
+              </div>
+              <div class="transfer-tabs" role="tablist">
+                <button
+                  class="transfer-tab active"
+                  id="tabBlind"
+                  role="tab"
+                  aria-selected="true"
+                  data-panel="panelBlind"
+                  data-i18n="transfer.tab.blind"
+                >
+                  Ciega
+                </button>
+                <button
+                  class="transfer-tab"
+                  id="tabAttended"
+                  role="tab"
+                  aria-selected="false"
+                  data-panel="panelAttended"
+                  data-i18n="transfer.tab.attended"
+                >
+                  Anunciada
+                </button>
+              </div>
+              <div
+                class="transfer-panel active"
+                id="panelBlind"
+                role="tabpanel"
+              >
+                <p class="transfer-hint" data-i18n="transfer.blind.hint">
+                  Introduce el número o extensión de destino
+                </p>
+                <div class="transfer-input-wrap">
+                  <input
+                    type="tel"
+                    id="transferDestInput"
+                    class="transfer-input"
+                    placeholder="+34 o extensión"
+                    data-i18n-ph="transfer.blind.ph"
+                    autocomplete="tel"
+                  />
+                  <button
+                    class="transfer-input-clear"
+                    id="btnTransferClear"
+                    aria-label="Borrar"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      width="16"
+                      height="16"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <button
+                  class="transfer-confirm"
+                  id="btnTransferConfirm"
+                  data-i18n="transfer.blind.confirm"
+                >
+                  Transferir ahora
+                </button>
+              </div>
+              <div class="transfer-panel" id="panelAttended" role="tabpanel">
+                <div class="transfer-attended-soon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="44"
+                    height="44"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <p data-i18n="transfer.attended.soon">Próximamente</p>
+                  <p
+                    class="transfer-attended-desc"
+                    data-i18n="transfer.attended.desc"
+                  >
+                    Disponible en la siguiente versión
+                  </p>
+                </div>
+              </div>
+              <button
+                class="incall-sheet-cancel"
+                id="btnTransferCancel"
+                data-i18n="cancel"
+              >
+                Cancelar
+              </button>
+            </div>
+            <!-- /transferSheet -->
+          </div>
+          <!-- /#screenCall -->
 
-
-        <!-- ═══════════════════════════════════════════════
+          <!-- ═══════════════════════════════════════════════
              INCOMING CALL OVERLAY
         ══════════════════════════════════════════════════ -->
-        <div class="screen overlay" id="screenIncoming">
-          <div class="incoming-bg" id="incomingBg"></div>
-          <div class="incoming-content">
-            <div class="incoming-label" data-i18n="incoming.label">Incoming Call</div>
+          <div class="screen overlay" id="screenIncoming">
+            <div class="incoming-bg" id="incomingBg"></div>
+            <div class="incoming-content">
+              <div class="incoming-label" data-i18n="incoming.label">
+                Incoming Call
+              </div>
 
-            <div class="incoming-avatar-wrap">
-              <div class="inc-ring r1"></div>
-              <div class="inc-ring r2"></div>
-              <div class="inc-ring r3"></div>
-              <div class="incoming-avatar" id="incomingAvatar">?</div>
-            </div>
+              <div class="incoming-avatar-wrap">
+                <div class="inc-ring r1"></div>
+                <div class="inc-ring r2"></div>
+                <div class="inc-ring r3"></div>
+                <div class="incoming-avatar" id="incomingAvatar">?</div>
+              </div>
 
-            <div class="incoming-name" id="incomingName">Unknown</div>
-            <div class="incoming-company" id="incomingCompany"></div>
-            <div class="incoming-number" id="incomingNumber"></div>
+              <div class="incoming-name" id="incomingName">Unknown</div>
+              <div class="incoming-company" id="incomingCompany"></div>
+              <div class="incoming-number" id="incomingNumber"></div>
 
-            <!-- Auto-answer countdown (visible only when auto-answer is armed) -->
-            <div class="auto-answer-countdown" id="autoAnswerCountdown" hidden>
-              <span class="auto-answer-text" id="autoAnswerText"></span>
-              <div class="auto-answer-track">
-                <div class="auto-answer-bar" id="autoAnswerBar"></div>
+              <!-- Auto-answer countdown (visible only when auto-answer is armed) -->
+              <div
+                class="auto-answer-countdown"
+                id="autoAnswerCountdown"
+                hidden
+              >
+                <span class="auto-answer-text" id="autoAnswerText"></span>
+                <div class="auto-answer-track">
+                  <div class="auto-answer-bar" id="autoAnswerBar"></div>
+                </div>
+              </div>
+
+              <div class="incoming-actions">
+                <div class="incoming-action">
+                  <button
+                    class="incoming-action-btn decline"
+                    id="btnDecline"
+                    aria-label="Decline"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08A.996.996 0 0 1 0 12.37c0-.28.11-.54.29-.73C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.64c.18.19.29.45.29.73 0 .28-.11.54-.29.73l-2.48 2.48a1 1 0 0 1-.71.29c-.27 0-.52-.1-.7-.28a11.27 11.27 0 0 0-2.67-1.85.994.994 0 0 1-.56-.9v-3.1A15.94 15.94 0 0 0 12 9z"
+                      />
+                    </svg>
+                  </button>
+                  <span
+                    class="incoming-action-label"
+                    data-i18n="incoming.decline"
+                    >Decline</span
+                  >
+                </div>
+                <div class="incoming-action">
+                  <button
+                    class="incoming-action-btn accept"
+                    id="btnAccept"
+                    aria-label="Accept"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"
+                      />
+                    </svg>
+                  </button>
+                  <span
+                    class="incoming-action-label"
+                    data-i18n="incoming.accept"
+                    >Accept</span
+                  >
+                </div>
               </div>
             </div>
+            <!-- /incoming-content -->
+          </div>
+          <!-- /#screenIncoming -->
+        </div>
+        <!-- /.screen-container -->
 
-            <div class="incoming-actions">
-              <div class="incoming-action">
-                <button class="incoming-action-btn decline" id="btnDecline" aria-label="Decline">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08A.996.996 0 0 1 0 12.37c0-.28.11-.54.29-.73C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.64c.18.19.29.45.29.73 0 .28-.11.54-.29.73l-2.48 2.48a1 1 0 0 1-.71.29c-.27 0-.52-.1-.7-.28a11.27 11.27 0 0 0-2.67-1.85.994.994 0 0 1-.56-.9v-3.1A15.94 15.94 0 0 0 12 9z"/>
-                  </svg>
-                </button>
-                <span class="incoming-action-label" data-i18n="incoming.decline">Decline</span>
-              </div>
-              <div class="incoming-action">
-                <button class="incoming-action-btn accept" id="btnAccept" aria-label="Accept">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/>
-                  </svg>
-                </button>
-                <span class="incoming-action-label" data-i18n="incoming.accept">Accept</span>
-              </div>
-            </div>
+        <!-- ── Tab Bar ──────────────────────────────────────── -->
+        <div class="tab-bar">
+          <div class="tab-item active" id="tabPhone" data-screen="screenKeypad">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"
+              />
+            </svg>
+            <span data-i18n="nav.phone">Phone</span>
+          </div>
+          <div class="tab-item" id="tabHistory" data-screen="screenHistory">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span data-i18n="nav.recents">Recents</span>
+            <span class="tab-badge hidden" id="missedBadge">0</span>
+          </div>
+          <div class="tab-item" id="tabContacts" data-screen="screenContacts">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span data-i18n="nav.contacts">Contacts</span>
+          </div>
+          <div class="tab-item" id="tabSettings" data-screen="screenSettings">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+            <span data-i18n="nav.settings">Settings</span>
+          </div>
+        </div>
 
-          </div><!-- /incoming-content -->
-        </div><!-- /#screenIncoming -->
+        <!-- Home indicator -->
+        <div class="home-indicator"></div>
 
-      </div><!-- /.screen-container -->
+        <!-- ── Presence Bottom Sheet ─────────────────────────── -->
+        <div class="sheet-backdrop" id="sheetBackdrop"></div>
+        <div class="bottom-sheet" id="presenceSheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-title" data-i18n="presence.title">Set Status</div>
+          <div class="presence-opt selected" data-status="available">
+            <div class="presence-opt-dot"></div>
+            <span class="presence-opt-label" data-i18n="presence.available"
+              >Available</span
+            >
+            <svg
+              class="presence-opt-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div class="presence-opt" data-status="busy">
+            <div class="presence-opt-dot"></div>
+            <span class="presence-opt-label" data-i18n="presence.busy"
+              >Busy</span
+            >
+            <svg
+              class="presence-opt-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div class="presence-opt" data-status="away">
+            <div class="presence-opt-dot"></div>
+            <span class="presence-opt-label" data-i18n="presence.away"
+              >Away</span
+            >
+            <svg
+              class="presence-opt-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div class="presence-opt" data-status="dnd">
+            <div class="presence-opt-dot"></div>
+            <span class="presence-opt-label" data-i18n="presence.dnd"
+              >Do Not Disturb</span
+            >
+            <svg
+              class="presence-opt-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div class="presence-opt" data-status="offline">
+            <div class="presence-opt-dot"></div>
+            <span class="presence-opt-label" data-i18n="presence.offline"
+              >Appear Offline</span
+            >
+            <svg
+              class="presence-opt-check"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <!-- /.phone-screen -->
+    </div>
+    <!-- /.phone-shell -->
 
+    <!-- Toast container (outside phone for desktop mode too) -->
+    <div class="toast-container" id="toastContainer"></div>
 
-      <!-- ── Tab Bar ──────────────────────────────────────── -->
-      <div class="tab-bar">
-        <div class="tab-item active" id="tabPhone" data-screen="screenKeypad">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/>
+    <!-- ── Floating Layout Switcher (always reachable in any mode) ── -->
+    <div class="layout-fab" id="layoutFab">
+      <button
+        class="layout-fab-btn"
+        id="layoutFabBtn"
+        aria-label="Switch layout"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Layout
+      </button>
+      <div class="layout-fab-menu" id="layoutFabMenu">
+        <div class="layout-fab-item active" data-layout="layout-mobile">
+          <span class="layout-fab-label-icon">📱</span>
+          Mobile Phone
+          <svg
+            class="layout-fab-check"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-          <span data-i18n="nav.phone">Phone</span>
         </div>
-        <div class="tab-item" id="tabHistory" data-screen="screenHistory">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+        <div class="layout-fab-item" data-layout="layout-compact">
+          <span class="layout-fab-label-icon">🔲</span>
+          Compact Phone
+          <svg
+            class="layout-fab-check"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-          <span data-i18n="nav.recents">Recents</span>
-          <span class="tab-badge hidden" id="missedBadge">0</span>
         </div>
-        <div class="tab-item" id="tabContacts" data-screen="screenContacts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        <div class="layout-fab-item" data-layout="layout-desktop">
+          <span class="layout-fab-label-icon">🖥️</span>
+          Desktop Softphone
+          <svg
+            class="layout-fab-check"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-          <span data-i18n="nav.contacts">Contacts</span>
         </div>
-        <div class="tab-item" id="tabSettings" data-screen="screenSettings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <div class="layout-fab-item" data-layout="layout-sidebar">
+          <span class="layout-fab-label-icon">📌</span>
+          Sidebar
+          <svg
+            class="layout-fab-check"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
           </svg>
-          <span data-i18n="nav.settings">Settings</span>
         </div>
-      </div>
-
-      <!-- Home indicator -->
-      <div class="home-indicator"></div>
-
-      <!-- ── Presence Bottom Sheet ─────────────────────────── -->
-      <div class="sheet-backdrop" id="sheetBackdrop"></div>
-      <div class="bottom-sheet" id="presenceSheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-title" data-i18n="presence.title">Set Status</div>
-        <div class="presence-opt selected" data-status="available">
-          <div class="presence-opt-dot"></div>
-          <span class="presence-opt-label" data-i18n="presence.available">Available</span>
-          <svg class="presence-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="presence-opt" data-status="busy">
-          <div class="presence-opt-dot"></div>
-          <span class="presence-opt-label" data-i18n="presence.busy">Busy</span>
-          <svg class="presence-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="presence-opt" data-status="away">
-          <div class="presence-opt-dot"></div>
-          <span class="presence-opt-label" data-i18n="presence.away">Away</span>
-          <svg class="presence-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="presence-opt" data-status="dnd">
-          <div class="presence-opt-dot"></div>
-          <span class="presence-opt-label" data-i18n="presence.dnd">Do Not Disturb</span>
-          <svg class="presence-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="presence-opt" data-status="offline">
-          <div class="presence-opt-dot"></div>
-          <span class="presence-opt-label" data-i18n="presence.offline">Appear Offline</span>
-          <svg class="presence-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-    </div><!-- /.phone-screen -->
-  </div><!-- /.phone-shell -->
-
-  <!-- Toast container (outside phone for desktop mode too) -->
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- ── Floating Layout Switcher (always reachable in any mode) ── -->
-  <div class="layout-fab" id="layoutFab">
-    <button class="layout-fab-btn" id="layoutFabBtn" aria-label="Switch layout">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-      </svg>
-      Layout
-    </button>
-    <div class="layout-fab-menu" id="layoutFabMenu">
-      <div class="layout-fab-item active" data-layout="layout-mobile">
-        <span class="layout-fab-label-icon">📱</span>
-        Mobile Phone
-        <svg class="layout-fab-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="layout-fab-item" data-layout="layout-compact">
-        <span class="layout-fab-label-icon">🔲</span>
-        Compact Phone
-        <svg class="layout-fab-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="layout-fab-item" data-layout="layout-desktop">
-        <span class="layout-fab-label-icon">🖥️</span>
-        Desktop Softphone
-        <svg class="layout-fab-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="layout-fab-item" data-layout="layout-sidebar">
-        <span class="layout-fab-label-icon">📌</span>
-        Sidebar
-        <svg class="layout-fab-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
     </div>
-  </div>
 
-  <!-- Debug Panel (visible when ?debug=true) -->
-  <div class="debug-panel" id="debugPanel">
-    <div class="debug-panel-header">
-      <div class="debug-status-dot disconnected" id="debugStatusDot"></div>
-      <span class="debug-title">LabelGateway</span>
-      <span class="debug-mode-badge" id="debugMode">mock</span>
-      <button class="debug-close" id="debugClose">×</button>
+    <!-- Debug Panel (visible when ?debug=true) -->
+    <div class="debug-panel" id="debugPanel">
+      <div class="debug-panel-header">
+        <div class="debug-status-dot disconnected" id="debugStatusDot"></div>
+        <span class="debug-title">LabelGateway</span>
+        <span class="debug-mode-badge" id="debugMode">mock</span>
+        <button class="debug-close" id="debugClose">×</button>
+      </div>
+      <div class="debug-panel-info">
+        <div class="debug-info-row">
+          <span class="debug-info-label">Provider</span
+          ><span id="debugProvider">—</span>
+        </div>
+        <div class="debug-info-row">
+          <span class="debug-info-label">REST</span
+          ><span id="debugRestUrl">—</span>
+        </div>
+        <div class="debug-info-row">
+          <span class="debug-info-label">WS</span><span id="debugWsUrl">—</span>
+        </div>
+      </div>
+      <div class="debug-log" id="debugLog"></div>
     </div>
-    <div class="debug-panel-info">
-      <div class="debug-info-row"><span class="debug-info-label">Provider</span><span id="debugProvider">—</span></div>
-      <div class="debug-info-row"><span class="debug-info-label">REST</span><span id="debugRestUrl">—</span></div>
-      <div class="debug-info-row"><span class="debug-info-label">WS</span><span id="debugWsUrl">—</span></div>
-    </div>
-    <div class="debug-log" id="debugLog"></div>
-  </div>
 
-  <!-- Scripts (load order matters: config → i18n → audio → gateway → ui → app) -->
-  <script src="js/config/appConfig.js"></script>
-  <script src="js/i18n/es.js"></script>
-  <script src="js/audioService.js"></script>
-  <script>
-    /* Load mock files only when telephonyGateway mode is 'mock' */
-    if (appConfig.telephonyGateway.mode === 'mock') {
-      ['js/mock/mockContacts.js','js/mock/mockHistory.js','js/mock/mockGateway.js']
-        .forEach(function(s) { document.write('<scr'+'ipt src="'+s+'"><\/scr'+'ipt>'); });
-    }
-  </script>
-  <script src="js/services/telephonyGatewayClient.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/app.js"></script>
-</body>
+    <!-- Scripts (load order matters: config → i18n → audio → gateway → ui → app) -->
+    <script src="js/config/appConfig.js"></script>
+    <script src="js/i18n/es.js"></script>
+    <script src="js/audioService.js"></script>
+    <script>
+      /* Load mock files only when telephonyGateway mode is 'mock' */
+      if (appConfig.telephonyGateway.mode === "mock") {
+        [
+          "js/mock/mockContacts.js",
+          "js/mock/mockHistory.js",
+          "js/mock/mockGateway.js",
+        ].forEach(function (s) {
+          document.write("<scr" + 'ipt src="' + s + '"><\/scr' + "ipt>");
+        });
+      }
+    </script>
+    <script src="js/services/telephonyGatewayClient.js"></script>
+    <script src="js/audio/g711.js?v=2"></script>
+    <script src="js/services/audioManager.js?v=2"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      /* TEMPORARY diagnostic — exposes the backend RTP test-signal commands
+         (already implemented in telephonyGatewayClient/wsServer/PromoSoftAdapter/
+         PromoSoftSipClient) to the browser console. Does not add any new
+         behaviour — only calls the existing debugAudioTest/debugAudioTestStop
+         methods. Remove once the audio investigation is closed. */
+      window.audioDebug = {
+        silence() {
+          console.log('[AUDIO DEBUG] silence');
+          return telephonyGatewayClient.debugAudioTest('silence');
+        },
+        tone() {
+          console.log('[AUDIO DEBUG] tone');
+          return telephonyGatewayClient.debugAudioTest('tone');
+        },
+        stop() {
+          console.log('[AUDIO DEBUG] stop');
+          return telephonyGatewayClient.debugAudioTestStop();
+        },
+      };
+    </script>
+  </body>
 </html>

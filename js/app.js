@@ -138,6 +138,7 @@ const App = (() => {
       audioService.stopRingback();
       audioService.stopRingtone();
       audioService.playConnected();
+      AudioManager.start();
 
       const call = telephonyGatewayClient.getState().call;
 
@@ -171,15 +172,76 @@ const App = (() => {
     });
 
     telephonyGatewayClient.on("ended", (data) => {
+      console.log(
+        '[app] ended event',
+        '| event.callId:', data.callId,
+        '| resolvedCallId:', data.callId,
+        '| activeCallId:', telephonyGatewayClient.getState().call
+          ? telephonyGatewayClient.getState().call.callId : null,
+        '| direction:', data.direction,
+        '| reason:', data.reason,
+        '| number:', data.number,
+      );
       _cancelAutoAnswer();
       _closeIncallDialpad();
       _closeTransferSheet();
       audioService.stopRingback();
       audioService.stopRingtone();
       audioService.playHangup();
+      AudioManager.stop();
       UI.hideCallScreen();
       UI.hideIncomingScreen();
+      UI.showScreen('screenKeypad');
+      console.log('[app] ended: UI reset executed — returned to screenKeypad');
       _addHistoryEntry(data);
+    });
+
+    /* failed covers: call rejected by remote, busy, network error, timeout.
+       Same teardown as ended — just no hangup sound. */
+    telephonyGatewayClient.on("failed", (data) => {
+      console.log(
+        '[app] failed event',
+        '| event.callId:', data.callId,
+        '| resolvedCallId:', data.callId,
+        '| activeCallId:', telephonyGatewayClient.getState().call
+          ? telephonyGatewayClient.getState().call.callId : null,
+        '| direction:', data.direction,
+        '| reason:', data.reason,
+        '| number:', data.number,
+      );
+      _cancelAutoAnswer();
+      _closeIncallDialpad();
+      _closeTransferSheet();
+      audioService.stopRingback();
+      audioService.stopRingtone();
+      AudioManager.stop();
+      UI.hideCallScreen();
+      UI.hideIncomingScreen();
+      UI.showScreen('screenKeypad');
+      console.log('[app] failed: UI reset executed — returned to screenKeypad');
+      _addHistoryEntry({ ...data, reason: data.reason || 'failed' });
+    });
+
+    /* missed covers: incoming call cancelled/timed out before it was answered.
+       Same teardown as failed — the incoming screen must not stay stuck. */
+    telephonyGatewayClient.on("missed", (data) => {
+      console.log(
+        '[app] missed event',
+        '| event.callId:', data.callId,
+        '| direction:', data.direction,
+        '| number:', data.number,
+      );
+      _cancelAutoAnswer();
+      _closeIncallDialpad();
+      _closeTransferSheet();
+      audioService.stopRingback();
+      audioService.stopRingtone();
+      AudioManager.stop();
+      UI.hideCallScreen();
+      UI.hideIncomingScreen();
+      UI.showScreen('screenKeypad');
+      console.log('[app] missed: UI reset executed — returned to screenKeypad');
+      _addHistoryEntry({ ...data, reason: 'missed' });
     });
 
     telephonyGatewayClient.on("error", (data) => {
@@ -189,9 +251,10 @@ const App = (() => {
 
   function _addHistoryEntry(endedData) {
     const { contact, number, direction, duration, reason } = endedData;
+    console.log('[app] _addHistoryEntry | direction:', direction, '| number:', number, '| reason:', reason, '| contact:', contact ? contact.name : null);
 
     let type;
-    if (reason === "declined" || reason === "missed") {
+    if (reason === "declined" || reason === "missed" || reason === "failed") {
       type = "missed";
     } else {
       type = direction === "inbound" ? "incoming" : "outgoing";
@@ -208,6 +271,7 @@ const App = (() => {
       time: _shortTime(new Date()),
     };
 
+    console.log('[app] history entry → type:', entry.type, '| name:', entry.name, '| number:', entry.number);
     telephonyGatewayClient.addHistoryEntry(entry);
     UI.prependHistory(entry);
   }
@@ -262,7 +326,9 @@ const App = (() => {
   }
 
   function _triggerCall() {
+    console.log('[app] Call button clicked');
     const number = UI.getDialerNumber();
+    console.log('[app] Destination:', number);
     if (!number) {
       UI.toast(I18N.t("toast.no_number"));
       return;
@@ -273,6 +339,8 @@ const App = (() => {
       return;
     }
     const contact = UI.getContactByPhone(number);
+    console.log('[app] Contact lookup result:', contact);
+    console.log('[app] Sending call request to LabelGateway, number:', number);
     telephonyGatewayClient
       .call(number, contact)
       .then(() => UI.clearDialer())
@@ -739,7 +807,8 @@ const App = (() => {
     });
 
     /* Login / Register */
-    document.getElementById("btnLogin")?.addEventListener("click", () => {
+    const btnLogin = document.getElementById("btnLogin");
+    btnLogin?.addEventListener("click", () => {
       const extension   = extInput?.value.trim()  || "";
       const password    = pwdInput?.value          || "";
       const displayName = nameInput?.value.trim()  || "";
@@ -747,10 +816,48 @@ const App = (() => {
       if (!extension) { UI.toast(I18N.t("toast.login.no_extension")); return; }
       if (!password)  { UI.toast(I18N.t("toast.login.no_password"));  return; }
 
+      const origText = I18N.t("login.btn_login");
+
+      const _restoreBtn = () => {
+        if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = origText; }
+      };
+
+      // One-shot: whichever event fires first removes both handlers and restores the button.
+      const _onRegistered = () => {
+        telephonyGatewayClient.off("registered",         _onRegistered);
+        telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+        _restoreBtn();
+        UI.toast(I18N.t("toast.login.success"));
+      };
+
+      const _onRegistrationFailed = (data) => {
+        telephonyGatewayClient.off("registered",         _onRegistered);
+        telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+        _restoreBtn();
+        if (pwdInput) pwdInput.value = "";
+        localStorage.removeItem("lp-login-password");
+        UI.toast(data.reason || I18N.t("toast.login.failed"));
+      };
+
+      // Register handlers before sending login so a fast registered event is never missed.
+      telephonyGatewayClient.on("registered",         _onRegistered);
+      telephonyGatewayClient.on("registrationFailed", _onRegistrationFailed);
+
+      // Disable button and show connecting status immediately.
+      if (btnLogin) {
+        btnLogin.disabled    = true;
+        btnLogin.textContent = I18N.t("login.btn.connecting", "Conectando a LabelGateway…");
+      }
+
       telephonyGatewayClient
         .login({ extension, password, displayName })
         .then(() => {
-          /* Persist or clear based on toggles */
+          // login command accepted — SIP REGISTER now in progress in the background.
+          // Only update text if button is still disabled (registered may have fired already in mock mode).
+          if (btnLogin && btnLogin.disabled) {
+            btnLogin.textContent = I18N.t("login.btn.registering", "Registrando extensión…");
+          }
+          // Persist credentials; a failed SIP register does not mean the extension is wrong.
           if (rememberExt?.checked) {
             localStorage.setItem("lp-login-extension", extension);
           } else {
@@ -763,10 +870,12 @@ const App = (() => {
             localStorage.removeItem("lp-login-password");
           }
           if (displayName) localStorage.setItem("lp-login-display-name", displayName);
-          UI.toast(I18N.t("toast.login.success"));
         })
         .catch((err) => {
-          /* Always clear password from memory on failure */
+          // WS connect failed or login command timed out — remove pending event handlers.
+          telephonyGatewayClient.off("registered",         _onRegistered);
+          telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+          _restoreBtn();
           if (pwdInput) pwdInput.value = "";
           localStorage.removeItem("lp-login-password");
           UI.toast(err.message || I18N.t("toast.login.failed"));
