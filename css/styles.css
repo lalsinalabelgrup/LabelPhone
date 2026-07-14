@@ -415,6 +415,7 @@ body {
    KEYPAD SCREEN
 ══════════════════════════════════════════════════════════════ */
 #screenKeypad .screen-scroll {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1632,6 +1633,120 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════════════
+   QUICK REGISTER MODAL
+══════════════════════════════════════════════════════════════ */
+.register-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.register-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.register-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% - 48px);
+  max-width: 300px;
+  background: var(--s2);
+  border-radius: 20px;
+  z-index: 301;
+  padding: 20px 18px 16px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%) scale(.94);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .28s var(--spring), opacity .2s ease;
+}
+.register-modal.active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.register-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--t1);
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.register-modal-error {
+  background: rgba(255,69,58,.14);
+  color: var(--red);
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+.register-modal-error[hidden] { display: none; }
+
+.register-modal .settings-login-field { margin-bottom: 10px; }
+
+.register-modal-pwd-wrap { position: relative; }
+.register-modal-pwd-wrap .settings-login-input { padding-right: 40px; }
+
+.register-modal-pwd-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--t3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.register-modal-pwd-toggle:hover { background: rgba(255,255,255,.08); color: var(--t2); }
+.register-modal-pwd-toggle.visible { color: var(--blue); }
+
+.register-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.register-modal-actions .settings-login-btn,
+.register-modal-actions .incall-sheet-cancel {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+.register-modal-actions .settings-login-btn:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.register-modal-advanced {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  background: transparent;
+  border: none;
+  color: var(--t3);
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+  transition: color .12s ease;
+}
+.register-modal-advanced:hover { color: var(--t2); text-decoration: underline; }
+
+
+/* ═══════════════════════════════════════════════════════════════
    TOAST NOTIFICATIONS
 ══════════════════════════════════════════════════════════════ */
 .toast-container {
@@ -2611,3 +2726,347 @@ body.layout-sidebar .aa-pill.aa-on { display: flex; }
 .aa-banner.aa-on { display: flex; }
 body.layout-desktop .aa-banner,
 body.layout-sidebar .aa-banner { display: none !important; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   REGISTRATION STATUS
+══════════════════════════════════════════════════════════════ */
+
+/* Shared status dot — reused by the header pill and the home card */
+.reg-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--gray);
+}
+.reg-dot.registering { background: var(--amber); }
+.reg-dot.registered  { background: var(--green); }
+.reg-dot.failed      { background: var(--red); }
+.reg-dot.disconnected,
+.reg-dot.not-registered { background: var(--gray); }
+.reg-dot.registered {
+  box-shadow: 0 0 0 0 var(--green-dim);
+  animation: reg-pulse 2.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reg-dot.registered { animation: none; }
+}
+@keyframes reg-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--green-dim); }
+  70%  { box-shadow: 0 0 0 6px rgba(52,199,89,0); }
+  100% { box-shadow: 0 0 0 0 rgba(52,199,89,0); }
+}
+
+/* ── Desktop / Sidebar pill (inside desktop-header) ─────────── */
+.reg-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  background: var(--s3);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px;
+  color: var(--t2);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  user-select: none;
+  cursor: default;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Idle home registration card (inside .phone-home-view) ───── */
+.reg-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 4px 16px 0;
+  padding: 12px 14px;
+  background: rgba(28,28,30,.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  box-sizing: border-box;
+}
+.reg-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.reg-card-status {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--t1);
+}
+.reg-card-sub {
+  font-size: 11.5px;
+  color: var(--t2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reg-card-sub.hidden { display: none; }
+.reg-card-btn {
+  flex-shrink: 0;
+  background: var(--blue);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+.reg-card-btn:hover { opacity: .88; }
+.reg-card-btn:disabled { opacity: .5; cursor: default; }
+.reg-card-btn:focus-visible,
+.reg-pill:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   IDLE HOME SCREEN / DIAL PAD TOGGLE
+   The dial pad is hidden by default; #screenKeypad.dialpad-open
+   swaps which of the two sibling views is visible/interactive.
+══════════════════════════════════════════════════════════════ */
+.phone-home-view,
+.phone-dialpad-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  transition: opacity .22s ease, transform .28s var(--spring);
+}
+.phone-home-view { position: relative; z-index: 0; min-height: 100%; padding-bottom: 12px; gap: 14px; }
+
+.phone-dialpad-view {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(10px) scale(.98);
+  pointer-events: none;
+}
+#screenKeypad.dialpad-open .phone-home-view {
+  opacity: 0;
+  transform: translateY(-8px) scale(.98);
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+#screenKeypad.dialpad-open .phone-dialpad-view {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  position: relative;
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-home-view,
+  .phone-dialpad-view { transition: opacity .15s ease; transform: none !important; }
+}
+
+.dialpad-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px 0;
+}
+.dialpad-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px 6px 6px;
+  color: var(--blue);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dialpad-back-btn svg { width: 22px; height: 22px; }
+.dialpad-back-btn:hover { background: rgba(255,255,255,.05); }
+.dialpad-back-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ── Wallpaper layer ──────────────────────────────────────────── */
+.home-wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  border-radius: inherit;
+}
+.home-wallpaper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.35) 100%);
+}
+.home-wallpaper[data-wallpaper="default"] {
+  background-color: var(--oled);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(0,122,255,.10), transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(191,90,242,.08), transparent 50%),
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+}
+.home-wallpaper[data-wallpaper="dark"] {
+  background-color: #060608;
+  background-image: radial-gradient(circle at 50% 0%, rgba(255,255,255,.05), transparent 60%);
+}
+.home-wallpaper[data-wallpaper="gradient"] {
+  background-image: linear-gradient(160deg, #0a1a3a 0%, #1c0f3a 55%, #000 100%);
+}
+.home-wallpaper[data-wallpaper="corporate"] {
+  background-color: #101318;
+  background-image: linear-gradient(180deg, #171b22 0%, #0c0e12 100%);
+}
+.home-wallpaper[data-wallpaper="custom"] { background-color: var(--oled); }
+
+/* ── Primary "Dial" action ────────────────────────────────────── */
+.home-dial-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 4px 16px 0;
+  padding: 15px;
+  background: var(--green);
+  border: none;
+  border-radius: 16px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .1s ease, opacity .15s ease;
+}
+.home-dial-btn svg { width: 20px; height: 20px; }
+.home-dial-btn:active { transform: scale(.97); }
+.home-dial-btn:hover  { opacity: .92; }
+.home-dial-btn:focus-visible { outline: 2px solid var(--t1); outline-offset: 2px; }
+.home-dial-btn:disabled { background: var(--s5); color: var(--t2); opacity: .5; cursor: not-allowed; }
+
+/* ── Recents strip ────────────────────────────────────────────── */
+.home-recents {
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+.home-recents-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 0 2px 6px;
+}
+.home-recents-list {
+  display: flex;
+  flex-direction: column;
+  background: rgba(28,28,30,.6);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.home-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+.home-recent-item + .home-recent-item { border-top: 1px solid rgba(255,255,255,.06); }
+.home-recent-item:hover { background: rgba(255,255,255,.04); }
+.home-recent-body { flex: 1; min-width: 0; }
+.home-recent-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-recent-name.missed { color: var(--red); }
+.home-recent-time { font-size: 11.5px; color: var(--t2); }
+.home-recents-empty {
+  padding: 14px 12px;
+  font-size: 13px;
+  color: var(--t3);
+  text-align: center;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   WALLPAPER SETTINGS
+══════════════════════════════════════════════════════════════ */
+.wallpaper-swatches {
+  display: flex;
+  gap: 12px;
+}
+.wallpaper-swatch {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+.wallpaper-swatch.active { border-color: var(--blue); }
+.wallpaper-swatch:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.wallpaper-swatch-preview {
+  display: block;
+  width: 52px;
+  height: 52px;
+  border-radius: 9px;
+}
+.wallpaper-swatch-preview[data-wallpaper="default"] {
+  background: var(--oled);
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+.wallpaper-swatch-preview[data-wallpaper="dark"] { background: #060608; }
+.wallpaper-swatch-preview[data-wallpaper="gradient"] { background: linear-gradient(160deg, #0a1a3a 0%, #1c0f3a 55%, #000 100%); }
+.wallpaper-swatch-preview[data-wallpaper="corporate"] { background: linear-gradient(180deg, #171b22 0%, #0c0e12 100%); }
+
+.settings-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  background: var(--s4);
+  border: none;
+  border-radius: 10px;
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+.settings-action-btn:hover { background: var(--s5); }
+.settings-action-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+#wallpaperFileInput.hidden { display: none; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   IDLE HOME / DIAL PAD — RESPONSIVE MODE OVERRIDES
+══════════════════════════════════════════════════════════════ */
+body.layout-desktop .reg-pill span      { font-size: calc(10.5px * var(--desktop-type-scale)); }
+body.layout-desktop .reg-card-status    { font-size: calc(14px   * var(--desktop-type-scale)); }
+body.layout-desktop .reg-card-sub       { font-size: calc(11.5px * var(--desktop-type-scale)); }
+body.layout-desktop .reg-card-btn       { font-size: calc(13px   * var(--desktop-type-scale)); }
+body.layout-desktop .home-dial-btn      { font-size: calc(16px   * var(--desktop-type-scale)); }
+body.layout-desktop .home-recents-title { font-size: calc(12px   * var(--desktop-type-scale)); }
+body.layout-desktop .home-recent-name   { font-size: calc(14px   * var(--desktop-type-scale)); }
+body.layout-desktop .home-recent-time   { font-size: calc(11.5px * var(--desktop-type-scale)); }
+body.layout-desktop .dialpad-back-btn   { font-size: calc(15px   * var(--desktop-type-scale)); }
+
+body.layout-sidebar .reg-card      { margin: 4px 12px 0; padding: 10px 12px; }
+body.layout-sidebar .reg-card-status { font-size: 13px; }
+body.layout-sidebar .home-dial-btn { width: calc(100% - 24px); margin: 4px 12px 0; padding: 12px; font-size: 14px; }
+body.layout-sidebar .home-recents  { padding: 0 12px; }
