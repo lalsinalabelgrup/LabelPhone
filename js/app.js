@@ -953,9 +953,9 @@ const App = (() => {
       _setRegisterButtonsBusy(false);
     });
 
-    telephonyGatewayClient.on("registrationFailed", () => {
+    telephonyGatewayClient.on("registrationFailed", (data) => {
       _loginInFlight = false;
-      _setRegistrationStatus("failed", null);
+      _setRegistrationStatus("failed", { message: data && data.reason });
       _setRegisterButtonsBusy(false);
     });
 
@@ -979,6 +979,9 @@ const App = (() => {
     UI.setRegistrationStatus(status, info);
     _updateHomeRegisterButton();
     _updateCallButtonState();
+    _updateHomeDialButton();
+    _updateHomeContextMessage();
+    _updateHomeError();
   }
 
   function _updateCallButtonState() {
@@ -991,14 +994,63 @@ const App = (() => {
       btnCall.title = hint;
     }
 
-    document.querySelectorAll(".home-dial-btn").forEach((btn) => {
-      btn.disabled = !enabled;
-      btn.title = hint;
-    });
-
     if (!enabled && UI.isDialpadOpen() && !telephonyGatewayClient.getState().call) {
       UI.showPhoneHome();
     }
+  }
+
+  function _updateHomeDialButton() {
+    const btn = document.getElementById("btnHomeDial");
+    if (!btn) return;
+    const label = document.getElementById("homeDialLabel");
+    const spinner = document.getElementById("homeDialSpinner");
+
+    let disabled = false;
+    let text = "";
+    let action = "";
+    let busy = false;
+
+    switch (_registrationStatus) {
+      case "registering":
+        disabled = true;
+        busy = true;
+        text = I18N.t("home.btn_registering");
+        break;
+      case "registered":
+        text = I18N.t("home.btn_dial");
+        action = "dial";
+        break;
+      case "failed":
+        text = I18N.t("home.btn_retry", "Reintentar registro");
+        action = "retry";
+        break;
+      default:
+        text = I18N.t("home.btn_register");
+        action = "register";
+    }
+
+    btn.disabled = disabled;
+    btn.dataset.action = action;
+    if (label) label.textContent = text;
+    if (spinner) spinner.classList.toggle("hidden", !busy);
+  }
+
+  function _updateHomeContextMessage() {
+    const el = document.getElementById("homeContextMsg");
+    if (!el) return;
+    el.textContent = _registrationStatus === "registered"
+      ? I18N.t("home.context.registered", "Ready to make or receive calls.")
+      : I18N.t("home.context.not_registered", "Register your SIP account to start making and receiving calls.");
+  }
+
+  function _updateHomeError() {
+    const el = document.getElementById("regCardError");
+    if (!el) return;
+    const show = _registrationStatus === "failed";
+    el.textContent = show
+      ? (_registrationInfo && _registrationInfo.message) || I18N.t("home.error.generic", "Unable to register.")
+      : "";
+    el.classList.toggle("hidden", !show);
   }
 
   function _setRegisterButtonsBusy(busy) {
@@ -1034,6 +1086,15 @@ const App = (() => {
     }
   }
 
+  /* Shared by btnHomeRegister and the dynamic home-dial button — both
+     may need to kick off a registration attempt, never duplicate logic. */
+  function _triggerHomeRegister() {
+    const ext = document.getElementById("loginExtension")?.value.trim() || "";
+    const pwd = document.getElementById("loginPassword")?.value || "";
+    if (ext && pwd) _doLogin();
+    else _openRegisterModal();
+  }
+
   /* ════════════════════════════════════════════════════════
      IDLE HOME SCREEN
   ═══════════════════════════════════════════════════════ */
@@ -1041,14 +1102,13 @@ const App = (() => {
     document.getElementById("btnHomeRegister")?.addEventListener("click", (e) => {
       const action = e.currentTarget.dataset.action;
       if (action === "unregister") { _doLogout(); return; }
-      const ext = document.getElementById("loginExtension")?.value.trim() || "";
-      const pwd = document.getElementById("loginPassword")?.value || "";
-      if (ext && pwd) _doLogin();
-      else _openRegisterModal();
+      _triggerHomeRegister();
     });
 
-    document.querySelectorAll(".home-dial-btn").forEach((btn) => {
-      btn.addEventListener("click", () => UI.showDialpad());
+    document.getElementById("btnHomeDial")?.addEventListener("click", (e) => {
+      const action = e.currentTarget.dataset.action;
+      if (action === "dial") { UI.showDialpad(); return; }
+      if (action === "register" || action === "retry") _triggerHomeRegister();
     });
 
     document.getElementById("btnDialpadBack")?.addEventListener("click", () => {
