@@ -17,6 +17,7 @@ const UI = (() => {
   let _diTimerInt    = null;
   let _currentCallId = null;
   let _historyFilter = 'all';
+  let _dialpadOpen   = false;
 
   let _contacts     = [];
   let _historyItems = [];
@@ -52,6 +53,9 @@ const UI = (() => {
       'dhInitials','dhUserName','dhUserExt',
       'settingsAvatar','settingsUserName','settingsUserExt',
       'settingsExtValue','settingsOrgValue',
+      'regPillDot','regPillText',
+      'regCardDot','regCardStatus','regCardSub',
+      'homeWallpaper','homeRecentsList',
     ].forEach(id => {
       const el = document.getElementById(id);
       if (el) $[id] = el;
@@ -100,6 +104,7 @@ const UI = (() => {
     }
     console.log('[UI] setHistory: loaded', _historyItems.length, 'entries');
     _renderHistory(_historyFilter === 'missed');
+    _renderHomeRecents();
   }
 
   function prependHistory(entry) {
@@ -114,6 +119,7 @@ const UI = (() => {
       _updateMissedBadge();
     }
     _renderHistory(_historyFilter === 'missed');
+    _renderHomeRecents();
   }
 
   /* ════════════════════════════════════════════════════════
@@ -564,6 +570,95 @@ const UI = (() => {
   }
 
   /* ════════════════════════════════════════════════════════
+     HOME RECENTS  (compact strip on the idle home view)
+  ═══════════════════════════════════════════════════════ */
+  function _renderHomeRecents() {
+    const wrap = $['homeRecentsList'];
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    const items = _historyItems.slice(0, 3);
+    if (items.length === 0) {
+      wrap.innerHTML = `<div class="home-recents-empty">${_t('home.recents_empty')}</div>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className     = 'home-recent-item';
+      div.dataset.phone = item.number;
+      div.dataset.name  = item.name;
+      div.innerHTML = `
+        <div class="history-icon ${item.type}">${_callTypeIcon(item.type)}</div>
+        <div class="home-recent-body">
+          <div class="home-recent-name${item.type === 'missed' ? ' missed' : ''}">${_esc(item.name)}</div>
+          <div class="home-recent-time">${_esc(item.time)}</div>
+        </div>
+      `;
+      wrap.appendChild(div);
+    });
+  }
+
+  function getRecentHistory(n) {
+    return _historyItems.slice(0, n || 3);
+  }
+
+  /* ════════════════════════════════════════════════════════
+     REGISTRATION STATUS
+     Never renders passwords, SIP secrets, or any sensitive config —
+     only status, provider name, and extension.
+  ═══════════════════════════════════════════════════════ */
+  function setRegistrationStatus(status, info) {
+    const label = _t(`registration.status.${status.replace(/-/g, '_')}`, status);
+    const dotClasses = ['not-registered', 'registering', 'registered', 'failed', 'disconnected'];
+
+    [$['regPillDot'], $['regCardDot']].forEach(dot => {
+      if (!dot) return;
+      dotClasses.forEach(c => dot.classList.remove(c));
+      dot.classList.add(status);
+    });
+
+    if ($['regPillText'])   $['regPillText'].textContent   = label;
+    if ($['regCardStatus']) $['regCardStatus'].textContent = label;
+
+    const sub = (status === 'registered' && info)
+      ? `${info.provider} · ${_t('registration.extension', 'Extensión {ext}').replace('{ext}', info.extension)}`
+      : '';
+    if ($['regCardSub']) {
+      $['regCardSub'].textContent = sub;
+      $['regCardSub'].classList.toggle('hidden', !sub);
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════
+     IDLE HOME / DIAL PAD TOGGLE
+     A single class on #screenKeypad — CSS drives which view is
+     visible/interactive, matching the existing .screen opacity pattern.
+     Dial-pad visibility never touches registration or call state.
+  ═══════════════════════════════════════════════════════ */
+  function showPhoneHome() {
+    _dialpadOpen = false;
+    document.getElementById('screenKeypad')?.classList.remove('dialpad-open');
+  }
+
+  function showDialpad() {
+    _dialpadOpen = true;
+    document.getElementById('screenKeypad')?.classList.add('dialpad-open');
+  }
+
+  function isDialpadOpen() { return _dialpadOpen; }
+
+  /* ════════════════════════════════════════════════════════
+     WALLPAPER
+  ═══════════════════════════════════════════════════════ */
+  function applyWallpaper(id, customUrl) {
+    const el = $['homeWallpaper'];
+    if (!el) return;
+    el.dataset.wallpaper = id;
+    el.style.backgroundImage = (id === 'custom' && customUrl) ? `url("${customUrl}")` : '';
+  }
+
+  /* ════════════════════════════════════════════════════════
      PRESENCE
   ═══════════════════════════════════════════════════════ */
   function openPresenceSheet() {
@@ -734,10 +829,19 @@ const UI = (() => {
     getCurrentCallId,
     /* History */
     setHistoryFilter,
+    getRecentHistory,
     /* Contacts */
     filterContacts,
     getContactById,
     getContactByPhone,
+    /* Registration status */
+    setRegistrationStatus,
+    /* Idle home / dial pad */
+    showPhoneHome,
+    showDialpad,
+    isDialpadOpen,
+    /* Wallpaper */
+    applyWallpaper,
     /* Presence */
     openPresenceSheet,
     closePresenceSheet,

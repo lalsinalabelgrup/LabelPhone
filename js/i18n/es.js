@@ -72,6 +72,37 @@ const I18N = (() => {
       'contacts.search': 'Buscar',
       'contacts.empty':  'Sin resultados',
 
+      /* Registration status */
+      'registration.status.not_registered': 'No registrado',
+      'registration.status.registering':    'Registrando…',
+      'registration.status.registered':     'Registrado',
+      'registration.status.failed':         'Error de registro',
+      'registration.status.disconnected':   'Desconectado',
+      'registration.extension':             'Extensión {ext}',
+
+      /* Home screen */
+      'home.btn_register':       'Registrar',
+      'home.btn_registering':    'Registrando…',
+      'home.btn_unregister':     'Cerrar sesión',
+      'home.btn_dial':           'Marcar',
+      'home.recents_title':      'Recientes',
+      'home.recents_empty':      'Sin llamadas recientes',
+      'home.btn_back':           'Inicio',
+
+      /* Wallpaper */
+      'wallpaper.title':          'Fondo de pantalla',
+      'wallpaper.default':        'Predeterminado',
+      'wallpaper.dark':           'Oscuro minimal',
+      'wallpaper.gradient':       'Degradado',
+      'wallpaper.corporate':      'Corporativo',
+      'wallpaper.custom':         'Personalizado',
+      'wallpaper.choose_image':   'Elegir imagen…',
+      'wallpaper.reset':          'Restablecer',
+      'toast.wallpaper.invalid_type': 'Selecciona un archivo de imagen válido',
+      'toast.wallpaper.too_large':    'La imagen supera el tamaño máximo (5 MB)',
+      'toast.wallpaper.saved':        'Fondo de pantalla actualizado',
+      'toast.wallpaper.reset':        'Fondo de pantalla restablecido',
+
       /* Settings — Login */
       'settings.section.login':        'Acceso',
       'login.extension':               'Extensión',
@@ -92,6 +123,16 @@ const I18N = (() => {
       'toast.logout.failed':           'Error al cerrar sesión',
       'login.btn.connecting':          'Conectando a LabelGateway…',
       'login.btn.registering':         'Registrando extensión…',
+
+      /* Quick register modal */
+      'register_modal.title':                   'Registrar extensión',
+      'register_modal.show_password':            'Mostrar contraseña',
+      'register_modal.hide_password':            'Ocultar contraseña',
+      'register_modal.save':                     'Guardar y registrar',
+      'register_modal.saving':                   'Registrando…',
+      'register_modal.advanced':                  'Ajustes avanzados',
+      'register_modal.error.extension_required':  'Introduce tu extensión',
+      'register_modal.error.password_required':   'Introduce tu contraseña',
 
       /* Settings */
       'settings.title':                'Ajustes',
@@ -134,6 +175,7 @@ const I18N = (() => {
       /* Toasts */
       'toast.voicemail':        'Buzón de voz no configurado',
       'toast.no_number':        'Introduce un número para llamar',
+      'call.disabled_hint':     'Registra el teléfono antes de realizar una llamada.',
       'toast.call_in_progress': 'Ya hay una llamada activa',
       'toast.transfer_stub':    'Transferencia: función no disponible',
       'toast.conference_stub':  'Conferencia: función no disponible',

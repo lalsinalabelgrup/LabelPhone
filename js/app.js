@@ -36,6 +36,14 @@ const App = (() => {
   let _autoAnswerTimer    = null;
   let _autoAnswerInterval = null;
 
+  /* registration status — derived, UI-facing superset over telephonyGatewayClient's
+     raw connection/registration state. Connection state and registration state
+     remain conceptually separate; this only reflects registration. */
+  let _registrationStatus = 'not-registered'; // not-registered | registering | registered | failed | disconnected
+  let _registrationInfo   = null;             // { provider, extension } when registered
+  let _loginInFlight      = false;            // true only while a login we triggered is pending
+  let _logoutInFlight     = false;            // true only while a logout we triggered is pending
+
   /* ════════════════════════════════════════════════════════
      BOOTSTRAP
   ═══════════════════════════════════════════════════════ */
@@ -53,9 +61,15 @@ const App = (() => {
     _bindContacts();
     _bindSettings();
     _bindLoginSection();
+    _bindRegistrationStatus();
+    _bindHomeScreen();
+    _bindRegisterModal();
+    _setRegistrationStatus(_registrationStatus, _registrationInfo);
+    _bindWallpaperSettings();
     _bindLayoutFab();
     _bindGlobal();
     _restoreSettings();
+    _initWallpaper();
     _initDebug();
 
     /* Connect to gateway, then fetch contacts and history */
@@ -192,6 +206,7 @@ const App = (() => {
       UI.hideCallScreen();
       UI.hideIncomingScreen();
       UI.showScreen('screenKeypad');
+      UI.showPhoneHome();
       console.log('[app] ended: UI reset executed — returned to screenKeypad');
       _addHistoryEntry(data);
     });
@@ -218,6 +233,7 @@ const App = (() => {
       UI.hideCallScreen();
       UI.hideIncomingScreen();
       UI.showScreen('screenKeypad');
+      UI.showPhoneHome();
       console.log('[app] failed: UI reset executed — returned to screenKeypad');
       _addHistoryEntry({ ...data, reason: data.reason || 'failed' });
     });
@@ -240,6 +256,7 @@ const App = (() => {
       UI.hideCallScreen();
       UI.hideIncomingScreen();
       UI.showScreen('screenKeypad');
+      UI.showPhoneHome();
       console.log('[app] missed: UI reset executed — returned to screenKeypad');
       _addHistoryEntry({ ...data, reason: 'missed' });
     });
@@ -806,95 +823,449 @@ const App = (() => {
       if (!e.target.checked) localStorage.removeItem("lp-login-extension");
     });
 
-    /* Login / Register */
-    const btnLogin = document.getElementById("btnLogin");
-    btnLogin?.addEventListener("click", () => {
-      const extension   = extInput?.value.trim()  || "";
-      const password    = pwdInput?.value          || "";
-      const displayName = nameInput?.value.trim()  || "";
+    document.getElementById("btnLogin")?.addEventListener("click", _doLogin);
+    document.getElementById("btnLogout")?.addEventListener("click", _doLogout);
+  }
 
-      if (!extension) { UI.toast(I18N.t("toast.login.no_extension")); return; }
-      if (!password)  { UI.toast(I18N.t("toast.login.no_password"));  return; }
+  /* Shared by the Settings login form (btnLogin) and the home-screen
+     register button (btnHomeRegister) — both must trigger the exact
+     same command, never duplicate logic. */
+  function _doLogin(onResult) {
+    if (_loginInFlight) return;
 
-      const origText = I18N.t("login.btn_login");
+    const extInput    = document.getElementById("loginExtension");
+    const pwdInput     = document.getElementById("loginPassword");
+    const nameInput    = document.getElementById("loginDisplayName");
+    const rememberExt  = document.getElementById("rememberExtension");
+    const rememberPwd  = document.getElementById("rememberPassword");
 
-      const _restoreBtn = () => {
-        if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = origText; }
-      };
+    const extension   = extInput?.value.trim()  || "";
+    const password    = pwdInput?.value          || "";
+    const displayName = nameInput?.value.trim()  || "";
 
-      // One-shot: whichever event fires first removes both handlers and restores the button.
-      const _onRegistered = () => {
-        telephonyGatewayClient.off("registered",         _onRegistered);
-        telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
-        _restoreBtn();
-        UI.toast(I18N.t("toast.login.success"));
-      };
+    if (!extension) { UI.toast(I18N.t("toast.login.no_extension")); return; }
+    if (!password)  { UI.toast(I18N.t("toast.login.no_password"));  return; }
 
-      const _onRegistrationFailed = (data) => {
-        telephonyGatewayClient.off("registered",         _onRegistered);
-        telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
-        _restoreBtn();
-        if (pwdInput) pwdInput.value = "";
-        localStorage.removeItem("lp-login-password");
-        UI.toast(data.reason || I18N.t("toast.login.failed"));
-      };
+    // registrationFailed may arrive (and clear the saved password) before this
+    // promise resolves — shouldPersistCreds records that so the .then() below
+    // does not immediately re-save the rejected password.
+    let shouldPersistCreds = true;
 
-      // Register handlers before sending login so a fast registered event is never missed.
-      telephonyGatewayClient.on("registered",         _onRegistered);
-      telephonyGatewayClient.on("registrationFailed", _onRegistrationFailed);
+    const _onRegistered = () => {
+      telephonyGatewayClient.off("registered",         _onRegistered);
+      telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+      UI.toast(I18N.t("toast.login.success"));
+      onResult && onResult({ success: true });
+    };
 
-      // Disable button and show connecting status immediately.
-      if (btnLogin) {
-        btnLogin.disabled    = true;
-        btnLogin.textContent = I18N.t("login.btn.connecting", "Conectando a LabelGateway…");
-      }
+    const _onRegistrationFailed = (data) => {
+      telephonyGatewayClient.off("registered",         _onRegistered);
+      telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+      shouldPersistCreds = false;
+      if (pwdInput) pwdInput.value = "";
+      localStorage.removeItem("lp-login-password");
+      UI.toast(data.reason || I18N.t("toast.login.failed"));
+      onResult && onResult({ success: false, message: data.reason || I18N.t("toast.login.failed") });
+    };
 
-      telephonyGatewayClient
-        .login({ extension, password, displayName })
-        .then(() => {
-          // login command accepted — SIP REGISTER now in progress in the background.
-          // Only update text if button is still disabled (registered may have fired already in mock mode).
-          if (btnLogin && btnLogin.disabled) {
-            btnLogin.textContent = I18N.t("login.btn.registering", "Registrando extensión…");
-          }
-          // Persist credentials; a failed SIP register does not mean the extension is wrong.
-          if (rememberExt?.checked) {
-            localStorage.setItem("lp-login-extension", extension);
-          } else {
-            localStorage.removeItem("lp-login-extension");
-          }
-          if (rememberPwd?.checked) {
-            localStorage.setItem("lp-login-password", password);
-          } else {
-            if (pwdInput) pwdInput.value = "";
-            localStorage.removeItem("lp-login-password");
-          }
-          if (displayName) localStorage.setItem("lp-login-display-name", displayName);
-        })
-        .catch((err) => {
-          // WS connect failed or login command timed out — remove pending event handlers.
-          telephonyGatewayClient.off("registered",         _onRegistered);
-          telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
-          _restoreBtn();
+    // Register handlers before sending login so a fast registered event is never missed.
+    telephonyGatewayClient.on("registered",         _onRegistered);
+    telephonyGatewayClient.on("registrationFailed", _onRegistrationFailed);
+
+    _loginInFlight = true;
+    _setRegistrationStatus("registering", null);
+    _setRegisterButtonsBusy(true);
+
+    telephonyGatewayClient
+      .login({ extension, password, displayName })
+      .then(() => {
+        if (!shouldPersistCreds) return;
+        if (rememberExt?.checked) {
+          localStorage.setItem("lp-login-extension", extension);
+        } else {
+          localStorage.removeItem("lp-login-extension");
+        }
+        if (rememberPwd?.checked) {
+          localStorage.setItem("lp-login-password", password);
+        } else {
           if (pwdInput) pwdInput.value = "";
           localStorage.removeItem("lp-login-password");
-          UI.toast(err.message || I18N.t("toast.login.failed"));
+        }
+        if (displayName) localStorage.setItem("lp-login-display-name", displayName);
+      })
+      .catch((err) => {
+        // WS connect failed or login command timed out — remove pending event handlers.
+        telephonyGatewayClient.off("registered",         _onRegistered);
+        telephonyGatewayClient.off("registrationFailed", _onRegistrationFailed);
+        _loginInFlight = false;
+        _setRegistrationStatus("not-registered", null);
+        _setRegisterButtonsBusy(false);
+        if (pwdInput) pwdInput.value = "";
+        localStorage.removeItem("lp-login-password");
+        UI.toast(err.message || I18N.t("toast.login.failed"));
+        onResult && onResult({ success: false, message: err.message || I18N.t("toast.login.failed") });
+      });
+  }
+
+  function _doLogout() {
+    if (_logoutInFlight) return;
+    _logoutInFlight = true;
+    _setRegisterButtonsBusy(true);
+
+    const pwdInput    = document.getElementById("loginPassword");
+    const rememberPwd = document.getElementById("rememberPassword");
+
+    telephonyGatewayClient
+      .logout()
+      .then(() => {
+        if (!rememberPwd?.checked) {
+          if (pwdInput) pwdInput.value = "";
+          localStorage.removeItem("lp-login-password");
+        }
+        UI.toast(I18N.t("toast.logout.success"));
+      })
+      .catch((err) => UI.toast(err.message || I18N.t("toast.logout.failed")))
+      .finally(() => {
+        _logoutInFlight = false;
+        _setRegisterButtonsBusy(false);
+      });
+  }
+
+  /* ════════════════════════════════════════════════════════
+     REGISTRATION STATUS — permanent derived state machine
+     Separate from call state and from telephonyGatewayClient's raw
+     connection/registration flags; this is the single UI-facing source
+     of truth for the status indicator and the home register button.
+  ═══════════════════════════════════════════════════════ */
+  function _bindRegistrationStatus() {
+    telephonyGatewayClient.on("registered", (data) => {
+      _loginInFlight = false;
+      _setRegistrationStatus("registered", {
+        provider: appConfig.user.company,
+        extension: data.extension || appConfig.user.extension,
+      });
+      _setRegisterButtonsBusy(false);
+    });
+
+    telephonyGatewayClient.on("unregistered", () => {
+      _loginInFlight = false;
+      _setRegistrationStatus("not-registered", null);
+      _setRegisterButtonsBusy(false);
+    });
+
+    telephonyGatewayClient.on("registrationFailed", () => {
+      _loginInFlight = false;
+      _setRegistrationStatus("failed", null);
+      _setRegisterButtonsBusy(false);
+    });
+
+    telephonyGatewayClient.on("disconnected", () => {
+      _loginInFlight = false;
+      _setRegistrationStatus("disconnected", null);
+      _setRegisterButtonsBusy(false);
+    });
+
+    /* A plain reconnect (not triggered by a login attempt) must not be
+       displayed as "registering" — registration and connection are
+       separate states. */
+    telephonyGatewayClient.on("connecting", () => {
+      if (_loginInFlight) _setRegistrationStatus("registering", null);
+    });
+  }
+
+  function _setRegistrationStatus(status, info) {
+    _registrationStatus = status;
+    _registrationInfo = info;
+    UI.setRegistrationStatus(status, info);
+    _updateHomeRegisterButton();
+    _updateCallButtonState();
+  }
+
+  function _updateCallButtonState() {
+    const enabled = _registrationStatus === "registered";
+    const hint = enabled ? "" : I18N.t("call.disabled_hint", "Register the phone before placing a call.");
+
+    const btnCall = document.getElementById("btnCall");
+    if (btnCall) {
+      btnCall.disabled = !enabled;
+      btnCall.title = hint;
+    }
+
+    document.querySelectorAll(".home-dial-btn").forEach((btn) => {
+      btn.disabled = !enabled;
+      btn.title = hint;
+    });
+
+    if (!enabled && UI.isDialpadOpen() && !telephonyGatewayClient.getState().call) {
+      UI.showPhoneHome();
+    }
+  }
+
+  function _setRegisterButtonsBusy(busy) {
+    const btnLogin = document.getElementById("btnLogin");
+    if (btnLogin) btnLogin.disabled = busy;
+    const btnLogout = document.getElementById("btnLogout");
+    if (btnLogout) btnLogout.disabled = busy;
+    const btnModalSave = document.getElementById("btnRegisterModalSave");
+    if (btnModalSave) {
+      btnModalSave.disabled = busy;
+      btnModalSave.textContent = I18N.t(busy ? "register_modal.saving" : "register_modal.save");
+    }
+    _updateHomeRegisterButton();
+  }
+
+  function _updateHomeRegisterButton() {
+    const btn = document.getElementById("btnHomeRegister");
+    if (!btn) return;
+    if (_loginInFlight) {
+      btn.disabled = true;
+      btn.textContent = I18N.t("home.btn_registering");
+    } else if (_logoutInFlight) {
+      btn.disabled = true;
+      btn.textContent = I18N.t("home.btn_unregister");
+    } else if (_registrationStatus === "registered") {
+      btn.disabled = false;
+      btn.textContent = I18N.t("home.btn_unregister");
+      btn.dataset.action = "unregister";
+    } else {
+      btn.disabled = false;
+      btn.textContent = I18N.t("home.btn_register");
+      btn.dataset.action = "register";
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════
+     IDLE HOME SCREEN
+  ═══════════════════════════════════════════════════════ */
+  function _bindHomeScreen() {
+    document.getElementById("btnHomeRegister")?.addEventListener("click", (e) => {
+      const action = e.currentTarget.dataset.action;
+      if (action === "unregister") { _doLogout(); return; }
+      const ext = document.getElementById("loginExtension")?.value.trim() || "";
+      const pwd = document.getElementById("loginPassword")?.value || "";
+      if (ext && pwd) _doLogin();
+      else _openRegisterModal();
+    });
+
+    document.querySelectorAll(".home-dial-btn").forEach((btn) => {
+      btn.addEventListener("click", () => UI.showDialpad());
+    });
+
+    document.getElementById("btnDialpadBack")?.addEventListener("click", () => {
+      UI.showPhoneHome();
+    });
+
+    document.getElementById("homeRecents")?.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-phone]");
+      if (!item || !item.dataset.phone) return;
+      const contact = UI.getContactByPhone(item.dataset.phone);
+      _callContact(contact || { name: item.dataset.name || "", phone: item.dataset.phone });
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════
+     QUICK REGISTER MODAL — drives the exact same Settings config
+     (#loginExtension/#loginPassword) and the shared _doLogin(), so
+     there is only ever one configuration source and one login path.
+  ═══════════════════════════════════════════════════════ */
+  function _openRegisterModal() {
+    const backdrop = document.getElementById("registerModalBackdrop");
+    const modal    = document.getElementById("registerModal");
+    if (!backdrop || !modal) return;
+
+    const ext = document.getElementById("loginExtension")?.value.trim() || "";
+    const pwd = document.getElementById("loginPassword")?.value || "";
+
+    const modalExt = document.getElementById("registerModalExtension");
+    const modalPwd = document.getElementById("registerModalPassword");
+    if (modalExt) modalExt.value = ext;
+    if (modalPwd) {
+      modalPwd.value = pwd;
+      modalPwd.type = "password";
+    }
+    const toggle = document.getElementById("registerModalPwdToggle");
+    toggle?.classList.remove("visible");
+
+    _hideRegisterModalError();
+
+    backdrop.classList.add("active");
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => {
+      if (!ext) modalExt?.focus();
+      else modalPwd?.focus();
+    }, 150);
+  }
+
+  function _closeRegisterModal() {
+    const backdrop = document.getElementById("registerModalBackdrop");
+    const modal    = document.getElementById("registerModal");
+    if (backdrop) backdrop.classList.remove("active");
+    if (modal) {
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    _hideRegisterModalError();
+  }
+
+  function _showRegisterModalError(message) {
+    const el = document.getElementById("registerModalError");
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+  }
+
+  function _hideRegisterModalError() {
+    const el = document.getElementById("registerModalError");
+    if (!el) return;
+    el.hidden = true;
+    el.textContent = "";
+  }
+
+  function _saveAndRegisterFromModal() {
+    const modalExt = document.getElementById("registerModalExtension");
+    const modalPwd = document.getElementById("registerModalPassword");
+    const extension = modalExt?.value.trim() || "";
+    const password  = modalPwd?.value || "";
+
+    if (!extension) {
+      _showRegisterModalError(I18N.t("register_modal.error.extension_required"));
+      modalExt?.focus();
+      return;
+    }
+    if (!password) {
+      _showRegisterModalError(I18N.t("register_modal.error.password_required"));
+      modalPwd?.focus();
+      return;
+    }
+    _hideRegisterModalError();
+
+    const extInput = document.getElementById("loginExtension");
+    const pwdInput  = document.getElementById("loginPassword");
+    if (extInput) extInput.value = extension;
+    if (pwdInput)  pwdInput.value = password;
+
+    const rememberExt = document.getElementById("rememberExtension");
+    const rememberPwd = document.getElementById("rememberPassword");
+    if (rememberExt) rememberExt.checked = true;
+    if (rememberPwd) rememberPwd.checked = true;
+
+    _doLogin((result) => {
+      if (result.success) {
+        _closeRegisterModal();
+      } else {
+        _showRegisterModalError(result.message);
+        document.getElementById("registerModalPassword")?.focus();
+      }
+    });
+  }
+
+  function _bindRegisterModal() {
+    document.getElementById("btnRegisterModalSave")?.addEventListener("click", _saveAndRegisterFromModal);
+    document.getElementById("btnRegisterModalCancel")?.addEventListener("click", _closeRegisterModal);
+    document.getElementById("registerModalBackdrop")?.addEventListener("click", _closeRegisterModal);
+
+    document.getElementById("registerModalAdvanced")?.addEventListener("click", () => {
+      _closeRegisterModal();
+      UI.showScreen("screenSettings");
+    });
+
+    document.getElementById("registerModalPwdToggle")?.addEventListener("click", (e) => {
+      const pwd = document.getElementById("registerModalPassword");
+      if (!pwd) return;
+      const showing = pwd.type === "password";
+      pwd.type = showing ? "text" : "password";
+      e.currentTarget.classList.toggle("visible", showing);
+    });
+
+    ["registerModalExtension", "registerModalPassword"].forEach((id) => {
+      document.getElementById(id)?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          _saveAndRegisterFromModal();
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          _closeRegisterModal();
+        }
+      });
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════
+     WALLPAPER — persistence lives entirely in wallpaperService
+     (localStorage for the preset id, IndexedDB for the custom image).
+     Never touches the network or LabelGateway.
+  ═══════════════════════════════════════════════════════ */
+  function _bindWallpaperSettings() {
+    document.getElementById("wallpaperSwatches")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".wallpaper-swatch");
+      if (!btn || !btn.dataset.wallpaper) return;
+      const id = btn.dataset.wallpaper;
+      wallpaperService.setSelected(id);
+      UI.applyWallpaper(id);
+      _updateWallpaperSwatchActive(id);
+      UI.toast(I18N.t("toast.wallpaper.saved"));
+    });
+
+    document.getElementById("wallpaperFileInput")?.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      wallpaperService
+        .saveCustomImage(file)
+        .then(() => {
+          wallpaperService.setSelected("custom");
+          return wallpaperService.loadCustomImageURL();
+        })
+        .then((url) => {
+          UI.applyWallpaper("custom", url);
+          _updateWallpaperSwatchActive("custom");
+          UI.toast(I18N.t("toast.wallpaper.saved"));
+        })
+        .catch((err) => {
+          const key = err.message === "too_large"
+            ? "toast.wallpaper.too_large"
+            : "toast.wallpaper.invalid_type";
+          UI.toast(I18N.t(key));
         });
     });
 
-    /* Logout / Unregister */
-    document.getElementById("btnLogout")?.addEventListener("click", () => {
-      telephonyGatewayClient
-        .logout()
-        .then(() => {
-          if (!rememberPwd?.checked) {
-            if (pwdInput) pwdInput.value = "";
-            localStorage.removeItem("lp-login-password");
-          }
-          UI.toast(I18N.t("toast.logout.success"));
-        })
-        .catch((err) => UI.toast(err.message || I18N.t("toast.logout.failed")));
+    document.getElementById("btnWallpaperReset")?.addEventListener("click", () => {
+      wallpaperService.resetToDefault().then(() => {
+        UI.applyWallpaper("default");
+        _updateWallpaperSwatchActive("default");
+        UI.toast(I18N.t("toast.wallpaper.reset"));
+      });
     });
+  }
+
+  function _updateWallpaperSwatchActive(id) {
+    document.querySelectorAll("#wallpaperSwatches .wallpaper-swatch").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.wallpaper === id);
+    });
+  }
+
+  function _initWallpaper() {
+    const id = wallpaperService.getSelected();
+    _updateWallpaperSwatchActive(id);
+    if (id === "custom") {
+      wallpaperService
+        .loadCustomImageURL()
+        .then((url) => {
+          if (url) {
+            UI.applyWallpaper("custom", url);
+          } else {
+            wallpaperService.resetToDefault();
+            UI.applyWallpaper("default");
+            _updateWallpaperSwatchActive("default");
+          }
+        })
+        .catch(() => UI.applyWallpaper("default"));
+    } else {
+      UI.applyWallpaper(id);
+    }
   }
 
   /* ════════════════════════════════════════════════════════
@@ -940,8 +1311,9 @@ const App = (() => {
         e.preventDefault();
         audioService.dtmf(e.key);
         if (!inCall) {
-          UI.appendDigit(e.key);
           UI.showScreen("screenKeypad");
+          UI.showDialpad();
+          UI.appendDigit(e.key);
         } else {
           telephonyGatewayClient.sendDTMF(e.key).catch(() => {});
         }
@@ -965,6 +1337,8 @@ const App = (() => {
           _cancelAutoAnswer();
           audioService.stopRingtone();
           telephonyGatewayClient.reject().catch(() => {});
+        } else if (!call && UI.isDialpadOpen()) {
+          UI.showPhoneHome();
         }
       }
     });

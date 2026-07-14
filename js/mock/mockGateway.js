@@ -201,9 +201,15 @@ function createMockGateway(state, emit, debugFn) {
       emit('historyUpdated', { history: this._history.slice(0, 50) });
     },
 
-    login({ extension, displayName }) {
+    login({ extension, password, displayName }) {
       return new Promise(resolve => {
         setTimeout(() => {
+          if (password !== appConfig.user.password) {
+            state.registration = 'unregistered';
+            emit('registrationFailed', { reason: 'Extensión o contraseña incorrectas' });
+            resolve({ extension });
+            return;
+          }
           state.registration = 'registered';
           emit('registered', { extension: extension || appConfig.user.extension });
           resolve({ extension });
