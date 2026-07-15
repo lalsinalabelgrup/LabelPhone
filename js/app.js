@@ -64,6 +64,8 @@ const App = (() => {
     _bindRegistrationStatus();
     _bindHomeScreen();
     _bindRegisterModal();
+    _bindContactModal();
+    _bindConfirmModal();
     _setRegistrationStatus(_registrationStatus, _registrationInfo);
     _bindWallpaperSettings();
     _bindLayoutFab();
@@ -72,16 +74,20 @@ const App = (() => {
     _initWallpaper();
     _initDebug();
 
-    /* Connect to gateway, then fetch contacts and history */
+    /* Connect to gateway, then fetch the (debug-only) gateway contact sample and history */
     telephonyGatewayClient
       .connect()
       .then(() => telephonyGatewayClient.getContacts())
       .then((contacts) => {
-        _contacts = contacts;
-        UI.setContacts(contacts);
+        _contacts = contacts; /* used only by the debug "Simulate Incoming Call" sampler */
         return telephonyGatewayClient.getHistory();
       })
       .then((history) => UI.setHistory(history))
+      .catch((err) => UI.toast(err.message));
+
+    /* Address book: independent local data source (see ContactsRepository) */
+    ContactsRepository.loadContacts()
+      .then((contacts) => UI.setContacts(contacts))
       .catch((err) => UI.toast(err.message));
 
     audioService.prime();
@@ -268,7 +274,8 @@ const App = (() => {
 
   function _addHistoryEntry(endedData) {
     const { contact, number, direction, duration, reason } = endedData;
-    console.log('[app] _addHistoryEntry | direction:', direction, '| number:', number, '| reason:', reason, '| contact:', contact ? contact.name : null);
+    const contactName = contact ? _fullName(contact) : null;
+    console.log('[app] _addHistoryEntry | direction:', direction, '| number:', number, '| reason:', reason, '| contact:', contactName);
 
     let type;
     if (reason === "declined" || reason === "missed" || reason === "failed") {
@@ -281,7 +288,7 @@ const App = (() => {
       id: `h${Date.now()}`,
       contactId: contact ? contact.id : null,
       number: number || "",
-      name: contact ? contact.name : number || I18N.t("unknown"),
+      name: contactName || number || I18N.t("unknown"),
       type,
       duration: duration || 0,
       label: "history.today",
@@ -365,13 +372,19 @@ const App = (() => {
   }
 
   function _callContact(contact) {
+    const target = (contact.phone && contact.phone.trim()) || (contact.extension && contact.extension.trim());
+    if (!target) return;
+    if (_registrationStatus !== "registered") {
+      UI.toast(I18N.t("call.disabled_hint", "Register the phone before placing a call."));
+      return;
+    }
     const state = telephonyGatewayClient.getState();
     if (state.call) {
       UI.toast(I18N.t("toast.call_in_progress"));
       return;
     }
     telephonyGatewayClient
-      .call(contact.phone, contact)
+      .call(target, contact)
       .catch((err) => UI.toast(err.message));
   }
 
@@ -728,14 +741,201 @@ const App = (() => {
     });
 
     document.getElementById("contactsList")?.addEventListener("click", (e) => {
+      if (e.target.closest("#btnEmptyCreateContact")) {
+        _openContactModal(null);
+        return;
+      }
+
       const item = e.target.closest(".contact-item");
       if (!item) return;
       const contact = UI.getContactById(item.dataset.id);
-      if (contact) {
-        _callContact(contact);
-        UI.showScreen("screenKeypad");
+      if (!contact) return;
+
+      if (e.target.closest(".contact-edit-btn")) {
+        e.stopPropagation();
+        _openContactModal(contact);
+        return;
+      }
+      if (e.target.closest(".contact-delete-btn")) {
+        e.stopPropagation();
+        _openDeleteConfirm(contact);
+        return;
+      }
+
+      const target = (contact.phone && contact.phone.trim()) || (contact.extension && contact.extension.trim());
+      _callContact(contact);
+      if (target) UI.showScreen("screenKeypad");
+    });
+
+    document.getElementById("btnNewContact")?.addEventListener("click", () => _openContactModal(null));
+  }
+
+  function _fullName(contact) {
+    return [contact.firstName, contact.lastName].filter(Boolean).join(" ").trim();
+  }
+
+  /* ── Contact Modal (create/edit) ── */
+  let _contactModalEditingId = null;
+
+  function _openContactModal(contact) {
+    const backdrop = document.getElementById("contactModalBackdrop");
+    const modal = document.getElementById("contactModal");
+    if (!backdrop || !modal) return;
+
+    _contactModalEditingId = contact ? contact.id : null;
+
+    const title = document.getElementById("contactModalTitle");
+    if (title) {
+      title.textContent = contact
+        ? I18N.t("contact_modal.title.edit", "Editar contacto")
+        : I18N.t("contact_modal.title.new", "Nuevo contacto");
+    }
+
+    document.getElementById("contactModalFirstName").value = contact?.firstName || "";
+    document.getElementById("contactModalLastName").value  = contact?.lastName  || "";
+    document.getElementById("contactModalCompany").value   = contact?.company   || "";
+    document.getElementById("contactModalPhone").value     = contact?.phone     || "";
+    document.getElementById("contactModalExtension").value = contact?.extension || "";
+    document.getElementById("contactModalEmail").value     = contact?.email     || "";
+    document.getElementById("contactModalNotes").value     = contact?.notes     || "";
+    document.getElementById("contactModalFavorite").checked = !!(contact && contact.favorite);
+
+    _hideContactModalError();
+
+    backdrop.classList.add("active");
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => document.getElementById("contactModalFirstName")?.focus(), 150);
+  }
+
+  function _closeContactModal() {
+    const backdrop = document.getElementById("contactModalBackdrop");
+    const modal = document.getElementById("contactModal");
+    if (backdrop) backdrop.classList.remove("active");
+    if (modal) {
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    _hideContactModalError();
+    _contactModalEditingId = null;
+  }
+
+  function _showContactModalError(message) {
+    const el = document.getElementById("contactModalError");
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+  }
+
+  function _hideContactModalError() {
+    const el = document.getElementById("contactModalError");
+    if (!el) return;
+    el.hidden = true;
+    el.textContent = "";
+  }
+
+  function _saveContactFromModal() {
+    const firstName = document.getElementById("contactModalFirstName")?.value.trim() || "";
+    const lastName  = document.getElementById("contactModalLastName")?.value.trim() || "";
+    const company   = document.getElementById("contactModalCompany")?.value.trim() || "";
+    const phone     = document.getElementById("contactModalPhone")?.value.trim() || "";
+    const extension = document.getElementById("contactModalExtension")?.value.trim() || "";
+    const email     = document.getElementById("contactModalEmail")?.value.trim() || "";
+    const notes     = document.getElementById("contactModalNotes")?.value.trim() || "";
+    const favorite  = !!document.getElementById("contactModalFavorite")?.checked;
+
+    if (!firstName) {
+      _showContactModalError(I18N.t("contact_modal.error.name_required", "El nombre es obligatorio."));
+      document.getElementById("contactModalFirstName")?.focus();
+      return;
+    }
+    if (!phone && !extension) {
+      _showContactModalError(I18N.t("contact_modal.error.phone_or_ext_required", "Indica un teléfono o una extensión."));
+      document.getElementById("contactModalPhone")?.focus();
+      return;
+    }
+    _hideContactModalError();
+
+    const data = { firstName, lastName, company, phone, extension, email, notes, favorite };
+    const savePromise = _contactModalEditingId
+      ? ContactsRepository.updateContact(_contactModalEditingId, data)
+      : ContactsRepository.saveContact(data);
+
+    savePromise
+      .then(() => ContactsRepository.loadContacts())
+      .then((contacts) => {
+        UI.setContacts(contacts);
+        _closeContactModal();
+        UI.toast(I18N.t("toast.contact_saved", "Contacto guardado"));
+      })
+      .catch((err) => _showContactModalError(err.message || String(err)));
+  }
+
+  function _bindContactModal() {
+    document.getElementById("btnContactModalSave")?.addEventListener("click", _saveContactFromModal);
+    document.getElementById("btnContactModalCancel")?.addEventListener("click", _closeContactModal);
+    document.getElementById("contactModalBackdrop")?.addEventListener("click", _closeContactModal);
+
+    document.getElementById("contactModal")?.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        _closeContactModal();
       }
     });
+  }
+
+  /* ── Delete Confirmation Modal (generic, currently used for contacts) ── */
+  let _confirmModalContactId = null;
+
+  function _openDeleteConfirm(contact) {
+    const backdrop = document.getElementById("confirmModalBackdrop");
+    const modal = document.getElementById("confirmModal");
+    if (!backdrop || !modal) return;
+
+    _confirmModalContactId = contact.id;
+    const msgEl = document.getElementById("confirmModalMessage");
+    if (msgEl) {
+      const name = _fullName(contact) || contact.phone || contact.extension || "";
+      msgEl.textContent = `${I18N.t("contact_delete.message", "¿Eliminar a")} ${name}? ${I18N.t("contact_delete.warning", "Esta acción no se puede deshacer.")}`;
+    }
+
+    backdrop.classList.add("active");
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function _closeConfirmModal() {
+    const backdrop = document.getElementById("confirmModalBackdrop");
+    const modal = document.getElementById("confirmModal");
+    if (backdrop) backdrop.classList.remove("active");
+    if (modal) {
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
+    }
+    _confirmModalContactId = null;
+  }
+
+  function _confirmDeleteContact() {
+    if (!_confirmModalContactId) {
+      _closeConfirmModal();
+      return;
+    }
+    const id = _confirmModalContactId;
+    ContactsRepository.deleteContact(id)
+      .then(() => ContactsRepository.loadContacts())
+      .then((contacts) => {
+        UI.setContacts(contacts);
+        _closeConfirmModal();
+        UI.toast(I18N.t("toast.contact_deleted", "Contacto eliminado"));
+      })
+      .catch((err) => UI.toast(err.message || String(err)));
+  }
+
+  function _bindConfirmModal() {
+    document.getElementById("btnConfirmModalOk")?.addEventListener("click", _confirmDeleteContact);
+    document.getElementById("btnConfirmModalCancel")?.addEventListener("click", _closeConfirmModal);
+    document.getElementById("confirmModalBackdrop")?.addEventListener("click", _closeConfirmModal);
   }
 
   /* ════════════════════════════════════════════════════════
@@ -982,6 +1182,7 @@ const App = (() => {
     _updateHomeDialButton();
     _updateHomeContextMessage();
     _updateHomeError();
+    UI.setContactsCallEnabled(status === "registered");
   }
 
   function _updateCallButtonState() {
@@ -1059,9 +1260,12 @@ const App = (() => {
     const btnLogout = document.getElementById("btnLogout");
     if (btnLogout) btnLogout.disabled = busy;
     const btnModalSave = document.getElementById("btnRegisterModalSave");
+    const modalSaveLabel = document.getElementById("registerModalSaveLabel");
+    const modalSaveSpinner = document.getElementById("registerModalSaveSpinner");
     if (btnModalSave) {
       btnModalSave.disabled = busy;
-      btnModalSave.textContent = I18N.t(busy ? "register_modal.saving" : "register_modal.save");
+      if (modalSaveLabel) modalSaveLabel.textContent = I18N.t(busy ? "register_modal.saving" : "register_modal.save");
+      if (modalSaveSpinner) modalSaveSpinner.classList.toggle("hidden", !busy);
     }
     _updateHomeRegisterButton();
   }
@@ -1069,13 +1273,16 @@ const App = (() => {
   function _updateHomeRegisterButton() {
     const btn = document.getElementById("btnHomeRegister");
     if (!btn) return;
+    const showAsUnregister = _registrationStatus === "registered";
+    btn.classList.toggle("hidden", !showAsUnregister);
+    btn.classList.toggle("reg-card-btn--danger", showAsUnregister);
     if (_loginInFlight) {
       btn.disabled = true;
       btn.textContent = I18N.t("home.btn_registering");
     } else if (_logoutInFlight) {
       btn.disabled = true;
       btn.textContent = I18N.t("home.btn_unregister");
-    } else if (_registrationStatus === "registered") {
+    } else if (showAsUnregister) {
       btn.disabled = false;
       btn.textContent = I18N.t("home.btn_unregister");
       btn.dataset.action = "unregister";
@@ -1239,17 +1446,16 @@ const App = (() => {
       e.currentTarget.classList.toggle("visible", showing);
     });
 
-    ["registerModalExtension", "registerModalPassword"].forEach((id) => {
-      document.getElementById(id)?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          _saveAndRegisterFromModal();
-        }
-        if (e.key === "Escape") {
-          e.preventDefault();
-          _closeRegisterModal();
-        }
-      });
+    document.getElementById("registerModal")?.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        _closeRegisterModal();
+        return;
+      }
+      if (e.key === "Enter" && (e.target.id === "registerModalExtension" || e.target.id === "registerModalPassword")) {
+        e.preventDefault();
+        _saveAndRegisterFromModal();
+      }
     });
   }
 
