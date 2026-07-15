@@ -171,6 +171,7 @@
               <!-- ── IDLE HOME VIEW (default) ──────────────────── -->
               <div class="phone-home-view">
                 <div class="home-wallpaper" id="homeWallpaper" data-wallpaper="default"></div>
+                <div class="home-wallpaper home-wallpaper--overlay" id="homeWallpaperOverlay" data-wallpaper="not-registered"></div>
 
                 <div class="reg-card">
                   <span class="reg-dot not-registered" id="regCardDot"></span>
@@ -388,6 +389,12 @@
           <div class="screen" id="screenContacts">
             <div class="contacts-header">
               <h1 class="large-title" data-i18n="screen.contacts">Contacts</h1>
+              <button class="contacts-new-btn" id="btnNewContact" title="Nuevo contacto" aria-label="Nuevo contacto">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
             </div>
             <div class="search-wrap">
               <div class="search-bar">
@@ -1793,12 +1800,12 @@
             <button
               class="settings-login-btn"
               id="btnRegisterModalSave"
-              data-i18n="register_modal.save"
             >
-              Guardar y registrar
+              <span class="btn-spinner hidden" id="registerModalSaveSpinner" aria-hidden="true"></span>
+              <span id="registerModalSaveLabel" data-i18n="register_modal.save">Registrar</span>
             </button>
             <button
-              class="incall-sheet-cancel"
+              class="settings-login-btn settings-login-btn--secondary"
               id="btnRegisterModalCancel"
               data-i18n="cancel"
             >
@@ -1813,6 +1820,79 @@
           >
             Ajustes avanzados
           </button>
+        </div>
+
+        <!-- ── Contact Create/Edit Modal ───────────────────── -->
+        <div class="register-modal-backdrop" id="contactModalBackdrop"></div>
+        <div
+          class="register-modal contact-modal"
+          id="contactModal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contactModalTitle"
+          aria-hidden="true"
+        >
+          <div class="register-modal-title" id="contactModalTitle">Nuevo contacto</div>
+
+          <div class="register-modal-error" id="contactModalError" role="alert" hidden></div>
+
+          <div class="contact-modal-scroll">
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalFirstName" data-i18n="contact_modal.first_name">Nombre</label>
+              <input type="text" id="contactModalFirstName" class="settings-login-input" autocomplete="off" data-i18n-ph="contact_modal.first_name" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalLastName" data-i18n="contact_modal.last_name">Apellidos</label>
+              <input type="text" id="contactModalLastName" class="settings-login-input" autocomplete="off" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalCompany" data-i18n="contact_modal.company">Empresa</label>
+              <input type="text" id="contactModalCompany" class="settings-login-input" autocomplete="off" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalPhone" data-i18n="contact_modal.phone">Teléfono</label>
+              <input type="tel" id="contactModalPhone" class="settings-login-input" autocomplete="off" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalExtension" data-i18n="contact_modal.extension">Extensión</label>
+              <input type="text" id="contactModalExtension" class="settings-login-input" inputmode="numeric" autocomplete="off" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalEmail" data-i18n="contact_modal.email">Correo</label>
+              <input type="email" id="contactModalEmail" class="settings-login-input" autocomplete="off" />
+            </div>
+            <div class="settings-login-field">
+              <label class="settings-login-label" for="contactModalNotes" data-i18n="contact_modal.notes">Notas</label>
+              <input type="text" id="contactModalNotes" class="settings-login-input" autocomplete="off" />
+            </div>
+            <label class="contact-modal-favorite-row" for="contactModalFavorite">
+              <input type="checkbox" id="contactModalFavorite" />
+              <span data-i18n="contact_modal.favorite">Favorito</span>
+            </label>
+          </div>
+
+          <div class="register-modal-actions">
+            <button class="settings-login-btn" id="btnContactModalSave" data-i18n="contact_modal.save">Guardar</button>
+            <button class="incall-sheet-cancel" id="btnContactModalCancel" data-i18n="cancel">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- ── Generic Confirm Modal (currently used for contact deletion) ── -->
+        <div class="register-modal-backdrop" id="confirmModalBackdrop"></div>
+        <div
+          class="register-modal confirm-modal"
+          id="confirmModal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirmModalTitle"
+          aria-hidden="true"
+        >
+          <div class="register-modal-title" id="confirmModalTitle">Eliminar contacto</div>
+          <div class="confirm-modal-message" id="confirmModalMessage"></div>
+          <div class="register-modal-actions">
+            <button class="settings-login-btn confirm-modal-danger" id="btnConfirmModalOk" data-i18n="contact_delete.confirm">Eliminar</button>
+            <button class="incall-sheet-cancel" id="btnConfirmModalCancel" data-i18n="contact_delete.cancel">Cancelar</button>
+          </div>
         </div>
       </div>
       <!-- /.phone-screen -->
@@ -1960,6 +2040,9 @@
     </script>
     <script src="js/services/telephonyGatewayClient.js"></script>
     <script src="js/services/wallpaperService.js"></script>
+    <script src="js/services/backgroundStateService.js"></script>
+    <script src="js/services/phoneUtils.js"></script>
+    <script src="js/services/contactsRepository.js"></script>
     <script src="js/audio/g711.js?v=2"></script>
     <script src="js/services/audioManager.js?v=2"></script>
     <script src="js/ui.js"></script>

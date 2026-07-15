@@ -719,7 +719,23 @@ body {
 .contacts-header {
   padding: 8px 20px 0;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.contacts-new-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.contacts-new-btn svg { width: 18px; height: 18px; }
+.contacts-new-btn:active { background: var(--blue); color: #fff; }
 
 /* iOS-style search bar */
 .search-wrap {
@@ -810,21 +826,50 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.contact-call-btn {
+.contact-sub {
+  font-size: 12px;
+  color: var(--t3);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contact-avatar { position: relative; }
+.contact-favorite-badge {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #F5A623;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  border: 2px solid var(--oled);
+}
+.contact-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.contact-call-btn,
+.contact-edit-btn,
+.contact-delete-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--blue-dim);
-  color: var(--blue);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  opacity: 0;
-  transition: opacity .15s ease;
 }
-.contact-item:hover .contact-call-btn { opacity: 1; }
-.contact-call-btn svg { width: 14px; height: 14px; }
+.contact-call-btn { background: var(--green-dim); color: var(--green); }
+.contact-edit-btn { background: var(--blue-dim); color: var(--blue); }
+.contact-delete-btn { background: rgba(255,59,48,.12); color: #FF3B30; }
+.contact-call-btn svg,
+.contact-edit-btn svg,
+.contact-delete-btn svg { width: 14px; height: 14px; }
+.contact-call-btn.disabled { opacity: .35 !important; pointer-events: none; }
+.contacts-list.registration-inactive .contact-call-btn { opacity: .35 !important; pointer-events: none; }
 .contact-item-divider {
   height: .5px;
   background: var(--border);
@@ -1119,7 +1164,11 @@ body {
 
 .settings-login-btn {
   flex: 1;
-  background: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--green);
   border: none;
   border-radius: 10px;
   padding: 11px 10px;
@@ -1137,6 +1186,13 @@ body {
   color: var(--red);
 }
 .settings-login-btn--logout:hover { background: rgba(255,69,58,.28); }
+
+.settings-login-btn--secondary {
+  background: rgba(255,255,255,.08);
+  color: var(--t2);
+}
+.settings-login-btn--secondary:hover { opacity: .88; }
+.settings-login-btn--secondary:active { opacity: .72; }
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1720,7 +1776,6 @@ body {
   gap: 10px;
   margin-top: 14px;
 }
-.register-modal-actions .settings-login-btn,
 .register-modal-actions .incall-sheet-cancel {
   flex: 1;
   width: auto;
@@ -1734,16 +1789,42 @@ body {
 .register-modal-advanced {
   display: block;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
   background: transparent;
   border: none;
-  color: var(--t3);
+  color: var(--blue);
   font-size: 13px;
   text-align: center;
   cursor: pointer;
   transition: color .12s ease;
 }
 .register-modal-advanced:hover { color: var(--t2); text-decoration: underline; }
+
+/* Contact create/edit modal */
+.contact-modal-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.contact-modal-favorite-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--t2);
+  margin-top: 4px;
+  cursor: pointer;
+}
+.contact-modal-favorite-row input { width: 16px; height: 16px; }
+
+/* Generic confirm modal */
+.confirm-modal-message {
+  font-size: 14px;
+  color: var(--t2);
+  margin: 4px 0 16px;
+  line-height: 1.4;
+}
+.confirm-modal-danger { background: #FF3B30 !important; }
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1994,6 +2075,10 @@ body.layout-desktop .seg-btn                     { font-size: calc(13px * var(--
 body.layout-desktop .settings-login-label        { font-size: calc(11px * var(--desktop-type-scale)); }
 body.layout-desktop .settings-login-toggle-label { font-size: calc(14px * var(--desktop-type-scale)); }
 body.layout-desktop .settings-login-btn          { font-size: calc(14px * var(--desktop-type-scale)); }
+body.layout-desktop .settings-login-input        { font-size: calc(15px * var(--desktop-type-scale)); }
+body.layout-desktop .register-modal-title        { font-size: calc(17px * var(--desktop-type-scale)); }
+body.layout-desktop .register-modal-error        { font-size: calc(13px * var(--desktop-type-scale)); }
+body.layout-desktop .register-modal-advanced     { font-size: calc(13px * var(--desktop-type-scale)); }
 body.layout-desktop .presence-badge              { font-size: calc(12px * var(--desktop-type-scale)); }
 body.layout-desktop .presence-dot-sm {
   width: calc(8px * var(--desktop-type-scale));
@@ -2228,6 +2313,30 @@ body.layout-sidebar .incoming-action-btn { width: 60px; height: 60px; }
   color: var(--text-3);
   font-size: 15px;
 }
+.empty-state-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+.empty-state-sub {
+  font-size: 14px;
+  color: var(--t3);
+  line-height: 1.4;
+  margin-bottom: 18px;
+}
+.empty-state-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 20px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.empty-state-btn:active { opacity: .85; }
 
 /* ═══════════════════════════════════════════════════════════════
    DEBUG PANEL  (?debug=true)
@@ -2814,7 +2923,7 @@ body.layout-sidebar .aa-banner { display: none !important; }
 .reg-card-sub.hidden { display: none; }
 .reg-card-btn {
   flex-shrink: 0;
-  background: var(--blue);
+  background: var(--green);
   border: none;
   border-radius: 10px;
   padding: 8px 14px;
@@ -2826,6 +2935,8 @@ body.layout-sidebar .aa-banner { display: none !important; }
 }
 .reg-card-btn:hover { opacity: .88; }
 .reg-card-btn:disabled { opacity: .5; cursor: default; }
+.reg-card-btn.hidden { display: none; }
+.reg-card-btn--danger { background: rgba(255,69,58,.18); color: var(--red); }
 .reg-card-btn:focus-visible,
 .reg-pill:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
@@ -2891,6 +3002,7 @@ body.layout-sidebar .aa-banner { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .phone-home-view,
   .phone-dialpad-view { transition: opacity .15s ease; transform: none !important; }
+  .home-wallpaper--overlay { transition: opacity .12s ease; }
 }
 
 .dialpad-header {
@@ -2950,6 +3062,19 @@ body.layout-sidebar .aa-banner { display: none !important; }
   background-image: linear-gradient(180deg, #171b22 0%, #0c0e12 100%);
 }
 .home-wallpaper[data-wallpaper="custom"] { background-color: var(--oled); }
+.home-wallpaper[data-wallpaper="not-registered"] {
+  background-color: #050506;
+  background-image:
+    radial-gradient(circle at 50% 20%, rgba(255,255,255,.04), transparent 55%),
+    linear-gradient(180deg, #0c0d10 0%, #000 100%);
+}
+
+.home-wallpaper--overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.home-wallpaper--overlay.active { opacity: 1; }
 
 /* ── Primary "Dial" action ────────────────────────────────────── */
 .home-dial-btn {

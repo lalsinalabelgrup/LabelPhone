@@ -68,9 +68,40 @@ const I18N = (() => {
       'call.type.outgoing':     'Saliente',
 
       /* Contacts */
-      'contacts.title':  'Contactos',
-      'contacts.search': 'Buscar',
-      'contacts.empty':  'Sin resultados',
+      'contacts.title':       'Contactos',
+      'contacts.search':      'Buscar',
+      'contacts.empty':       'Sin resultados',
+      'contacts.new':         'Nuevo contacto',
+      'contacts.favorites':   'Favoritos',
+      'contacts.empty.title': 'Aún no tienes contactos',
+      'contacts.empty.sub':   'Crea tu primer contacto para empezar a llamar más fácilmente.',
+      'contacts.empty.cta':   'Crear contacto',
+
+      /* Contact modal (create/edit) */
+      'contact_modal.title.new':                 'Nuevo contacto',
+      'contact_modal.title.edit':                'Editar contacto',
+      'contact_modal.first_name':                'Nombre',
+      'contact_modal.last_name':                 'Apellidos',
+      'contact_modal.company':                   'Empresa',
+      'contact_modal.phone':                      'Teléfono',
+      'contact_modal.extension':                  'Extensión',
+      'contact_modal.email':                      'Correo',
+      'contact_modal.notes':                      'Notas',
+      'contact_modal.favorite':                   'Favorito',
+      'contact_modal.save':                       'Guardar',
+      'contact_modal.error.name_required':        'El nombre es obligatorio.',
+      'contact_modal.error.phone_or_ext_required': 'Indica un teléfono o una extensión.',
+
+      /* Contact delete confirmation */
+      'contact_delete.title':   'Eliminar contacto',
+      'contact_delete.message': '¿Eliminar a',
+      'contact_delete.warning': 'Esta acción no se puede deshacer.',
+      'contact_delete.confirm': 'Eliminar',
+      'contact_delete.cancel':  'Cancelar',
+
+      /* Contact toasts */
+      'toast.contact_saved':   'Contacto guardado',
+      'toast.contact_deleted': 'Contacto eliminado',
 
       /* Registration status */
       'registration.status.not_registered': 'No registrado',
@@ -132,7 +163,7 @@ const I18N = (() => {
       'register_modal.title':                   'Registrar extensión',
       'register_modal.show_password':            'Mostrar contraseña',
       'register_modal.hide_password':            'Ocultar contraseña',
-      'register_modal.save':                     'Guardar y registrar',
+      'register_modal.save':                     'Registrar',
       'register_modal.saving':                   'Registrando…',
       'register_modal.advanced':                  'Ajustes avanzados',
       'register_modal.error.extension_required':  'Introduce tu extensión',

@@ -55,7 +55,7 @@ const UI = (() => {
       'settingsExtValue','settingsOrgValue',
       'regPillDot','regPillText',
       'regCardDot','regCardStatus','regCardSub',
-      'homeWallpaper','homeRecentsList',
+      'homeWallpaper','homeWallpaperOverlay','homeRecentsList',
     ].forEach(id => {
       const el = document.getElementById(id);
       if (el) $[id] = el;
@@ -239,19 +239,31 @@ const UI = (() => {
   /* ════════════════════════════════════════════════════════
      CALL SCREEN
   ═══════════════════════════════════════════════════════ */
+  function _contactDisplayName(contact) {
+    if (!contact) return '';
+    if (contact.firstName || contact.lastName) return _fullName(contact);
+    return contact.name || '';
+  }
+
+  function _contactAvatarPalette(contact) {
+    if (!contact) return ['#636366', '#3a3a3c'];
+    if (contact.color1 && contact.color2) return [contact.color1, contact.color2];
+    return _avatarColors(contact.id);
+  }
+
   function showCallScreen(state) {
     const contact = state.contact;
     const number  = state.number || '';
+    const name    = _contactDisplayName(contact);
 
-    const initials = contact ? _initials(contact.name) : (number ? number.slice(-4) : '?');
-    const c1 = contact ? contact.color1 : '#636366';
-    const c2 = contact ? contact.color2 : '#3a3a3c';
+    const initials = contact ? _initials(name) : (number ? number.slice(-4) : '?');
+    const [c1, c2] = _contactAvatarPalette(contact);
 
     if ($['callAvatar']) {
       $['callAvatar'].textContent = initials;
       $['callAvatar'].style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
     }
-    if ($['callContactName']) $['callContactName'].textContent = contact ? contact.name : (number || _t('unknown'));
+    if ($['callContactName']) $['callContactName'].textContent = contact ? name : (number || _t('unknown'));
     if ($['callCompany'])     $['callCompany'].textContent     = contact ? contact.company : '';
     if ($['callNumber'])      $['callNumber'].textContent      = contact ? number : '';
     if ($['callLocation'])    $['callLocation'].textContent    = '';
@@ -270,7 +282,7 @@ const UI = (() => {
     });
 
     showOverlay('screenCall');
-    _setDynamicIsland('calling', contact ? contact.name : number);
+    _setDynamicIsland('calling', contact ? name : number);
   }
 
   function updateCallConnected(state) {
@@ -282,7 +294,7 @@ const UI = (() => {
 
     _startCallTimer(_callStartTs);
 
-    _setDynamicIsland('active', state.contact ? state.contact.name : (state.number || ''));
+    _setDynamicIsland('active', state.contact ? _contactDisplayName(state.contact) : (state.number || ''));
     _startDITimer();
   }
 
@@ -347,15 +359,15 @@ const UI = (() => {
   function showIncomingScreen(payload) {
     const { contact, number, callId } = payload;
     _currentCallId = callId;
+    const name = _contactDisplayName(contact);
 
-    const c1 = contact ? contact.color1 : '#636366';
-    const c2 = contact ? contact.color2 : '#3a3a3c';
+    const [c1, c2] = _contactAvatarPalette(contact);
 
     if ($['incomingAvatar']) {
-      $['incomingAvatar'].textContent = contact ? _initials(contact.name) : '?';
+      $['incomingAvatar'].textContent = contact ? _initials(name) : '?';
       $['incomingAvatar'].style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
     }
-    if ($['incomingName'])    $['incomingName'].textContent    = contact ? contact.name : _t('unknown');
+    if ($['incomingName'])    $['incomingName'].textContent    = contact ? name : _t('unknown');
     if ($['incomingCompany']) $['incomingCompany'].textContent = contact ? contact.company : '';
     if ($['incomingNumber'])  $['incomingNumber'].textContent  = number || '';
     if ($['incomingBg'])      $['incomingBg'].style.cssText    = `--contact-color:${c1}33`;
@@ -410,7 +422,7 @@ const UI = (() => {
         div.innerHTML = `
           <div class="history-icon ${item.type}">${_callTypeIcon(item.type)}</div>
           <div class="history-body">
-            <div class="history-name${item.type === 'missed' ? ' missed' : ''}">${_esc(item.name)}</div>
+            <div class="history-name${item.type === 'missed' ? ' missed' : ''}">${_esc(_resolveHistoryName(item))}</div>
             ${sub ? `<div class="history-sub">${_esc(sub)}</div>` : ''}
           </div>
           <div class="history-time">${_esc(item.time)}</div>
@@ -456,6 +468,76 @@ const UI = (() => {
   /* ════════════════════════════════════════════════════════
      CONTACTS
   ═══════════════════════════════════════════════════════ */
+  function _fullName(c) {
+    return [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
+  }
+
+  const _AVATAR_PALETTE = [
+    ['#FF6B6B', '#C0392B'], ['#4ECDC4', '#16A085'], ['#45B7D1', '#2980B9'],
+    ['#96CEB4', '#27AE60'], ['#FECA57', '#F39C12'], ['#FF9FF3', '#8E44AD'],
+    ['#54A0FF', '#2980B9'], ['#5F27CD', '#341f97'], ['#00D2D3', '#0097A7'],
+    ['#A29BFE', '#6C5CE7'],
+  ];
+  function _avatarColors(id) {
+    const s = String(id || '');
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return _AVATAR_PALETTE[hash % _AVATAR_PALETTE.length];
+  }
+
+  function _dialTarget(c) {
+    return (c.phone && c.phone.trim()) || (c.extension && c.extension.trim()) || '';
+  }
+
+  function _contactSubLine(c) {
+    if (c.phone && c.phone.trim()) return c.phone;
+    if (c.extension && c.extension.trim()) return `Ext. ${c.extension}`;
+    return '';
+  }
+
+  function _contactRowHTML(c) {
+    const [c1, c2] = _avatarColors(c.id);
+    const target = _dialTarget(c);
+    const sub = _contactSubLine(c);
+    const fullName = _fullName(c);
+    return `
+      <div class="contact-avatar" style="background:linear-gradient(135deg,${c1},${c2})">
+        ${_initials(fullName)}
+        ${c.favorite ? '<span class="contact-favorite-badge">★</span>' : ''}
+      </div>
+      <div class="contact-info">
+        <div class="contact-name">${_esc(fullName)}</div>
+        ${c.company ? `<div class="contact-company">${_esc(c.company)}</div>` : ''}
+        ${sub ? `<div class="contact-sub">${_esc(sub)}</div>` : ''}
+      </div>
+      <div class="contact-actions">
+        <div class="contact-call-btn${target ? '' : ' disabled'}">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+        </div>
+        <div class="contact-edit-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div class="contact-delete-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+      </div>
+    `;
+  }
+
+  function _appendContactRow(c, container, isLast) {
+    const item = document.createElement('div');
+    item.className     = 'contact-item';
+    item.dataset.phone = _dialTarget(c);
+    item.dataset.id    = String(c.id);
+    item.innerHTML     = _contactRowHTML(c);
+    container.appendChild(item);
+    if (!isLast) {
+      const hr = document.createElement('div');
+      hr.className = 'contact-item-divider';
+      container.appendChild(hr);
+    }
+  }
+
   function _renderContacts(filter) {
     const list = $['contactsList'];
     const idx  = $['alphaIndex'];
@@ -464,24 +546,51 @@ const UI = (() => {
     if (idx) idx.innerHTML = '';
 
     filter = (filter || '').toLowerCase();
-    const matches = _contacts.filter(c =>
-      !filter ||
-      c.name.toLowerCase().includes(filter) ||
-      c.company.toLowerCase().includes(filter) ||
-      c.phone.includes(filter)
-    );
-
-    const alphaMap = {};
-    matches.forEach(c => {
-      const letter = c.name[0].toUpperCase();
-      if (!alphaMap[letter]) alphaMap[letter] = [];
-      alphaMap[letter].push(c);
+    const normalizedFilter = (typeof PhoneUtils !== 'undefined') ? PhoneUtils.normalize(filter) : '';
+    const matches = _contacts.filter(c => {
+      if (!filter) return true;
+      if (_fullName(c).toLowerCase().includes(filter)) return true;
+      if ((c.company || '').toLowerCase().includes(filter)) return true;
+      if ((c.phone || '').toLowerCase().includes(filter)) return true;
+      if ((c.extension || '').toLowerCase().includes(filter)) return true;
+      if (normalizedFilter &&
+          ((c.phone && PhoneUtils.normalize(c.phone) === normalizedFilter) ||
+           (c.extension && PhoneUtils.normalize(c.extension) === normalizedFilter))) return true;
+      return false;
     });
 
     if (matches.length === 0) {
-      list.innerHTML = `<div class="empty-state">${_t('contacts.empty')}</div>`;
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-title">${_t('contacts.empty.title', 'No contacts yet')}</div>
+          <div class="empty-state-sub">${_t('contacts.empty.sub', 'Create your first contact to start calling people more easily.')}</div>
+          ${!filter ? `<button class="empty-state-btn" id="btnEmptyCreateContact">${_t('contacts.empty.cta', 'Create Contact')}</button>` : ''}
+        </div>`;
       return;
     }
+
+    const favorites = matches
+      .filter(c => c.favorite)
+      .sort((a, b) => _fullName(a).localeCompare(_fullName(b)));
+    const others = matches.filter(c => !c.favorite);
+
+    if (favorites.length) {
+      const section = document.createElement('div');
+      section.className = 'contacts-alpha-section';
+      const hdr = document.createElement('div');
+      hdr.className   = 'contacts-alpha-header';
+      hdr.textContent = `★ ${_t('contacts.favorites', 'Favoritos')}`;
+      section.appendChild(hdr);
+      favorites.forEach((c, i) => _appendContactRow(c, section, i === favorites.length - 1));
+      list.appendChild(section);
+    }
+
+    const alphaMap = {};
+    others.forEach(c => {
+      const letter = (_fullName(c)[0] || '#').toUpperCase();
+      if (!alphaMap[letter]) alphaMap[letter] = [];
+      alphaMap[letter].push(c);
+    });
 
     const letters = Object.keys(alphaMap).sort();
     letters.forEach(letter => {
@@ -494,30 +603,7 @@ const UI = (() => {
       hdr.textContent = letter;
       section.appendChild(hdr);
 
-      alphaMap[letter].forEach((c, i) => {
-        const item = document.createElement('div');
-        item.className     = 'contact-item';
-        item.dataset.phone = c.phone;
-        item.dataset.id    = String(c.id);
-
-        item.innerHTML = `
-          <div class="contact-avatar" style="background:linear-gradient(135deg,${c.color1},${c.color2})">${_initials(c.name)}</div>
-          <div class="contact-info">
-            <div class="contact-name">${_esc(c.name)}</div>
-            <div class="contact-company">${_esc(c.company)}</div>
-          </div>
-          <div class="contact-call-btn">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.25.2 2.45.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
-          </div>
-        `;
-        section.appendChild(item);
-
-        if (i < alphaMap[letter].length - 1) {
-          const hr = document.createElement('div');
-          hr.className = 'contact-item-divider';
-          section.appendChild(hr);
-        }
-      });
+      alphaMap[letter].forEach((c, i) => _appendContactRow(c, section, i === alphaMap[letter].length - 1));
 
       list.appendChild(section);
     });
@@ -540,12 +626,19 @@ const UI = (() => {
 
   function getContactById(id) {
     const list = Array.isArray(_contacts) ? _contacts : [];
-    return list.find(c => c.id === Number(id)) || null;
+    return list.find(c => c.id === id) || null;
   }
 
   function getContactByPhone(phone) {
     const list = Array.isArray(_contacts) ? _contacts : [];
-    return list.find(c => c.phone === phone) || null;
+    if (typeof PhoneUtils === 'undefined') return list.find(c => c.phone === phone) || null;
+    return list.find(c => PhoneUtils.equals(c.phone, phone) || PhoneUtils.equals(c.extension, phone)) || null;
+  }
+
+  function setContactsCallEnabled(enabled) {
+    const list = $['contactsList'];
+    if (!list) return;
+    list.classList.toggle('registration-inactive', !enabled);
   }
 
   /* ════════════════════════════════════════════════════════
@@ -559,11 +652,12 @@ const UI = (() => {
     _contacts.filter(c => c.favorite).slice(0, 4).forEach(c => {
       const div = document.createElement('div');
       div.className     = 'quick-contact';
-      div.dataset.phone = c.phone;
+      div.dataset.phone = _dialTarget(c);
       div.dataset.id    = String(c.id);
+      const [c1, c2] = _avatarColors(c.id);
       div.innerHTML = `
-        <div class="quick-avatar" style="background:linear-gradient(135deg,${c.color1},${c.color2})">${_initials(c.name)}</div>
-        <span class="quick-name">${c.name.split(' ')[0]}</span>
+        <div class="quick-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${_initials(_fullName(c))}</div>
+        <span class="quick-name">${_esc(c.firstName || _fullName(c).split(' ')[0] || '')}</span>
       `;
       wrap.appendChild(div);
     });
@@ -585,18 +679,24 @@ const UI = (() => {
 
     items.forEach(item => {
       const div = document.createElement('div');
+      const resolvedName = _resolveHistoryName(item);
       div.className     = 'home-recent-item';
       div.dataset.phone = item.number;
-      div.dataset.name  = item.name;
+      div.dataset.name  = resolvedName;
       div.innerHTML = `
         <div class="history-icon ${item.type}">${_callTypeIcon(item.type)}</div>
         <div class="home-recent-body">
-          <div class="home-recent-name${item.type === 'missed' ? ' missed' : ''}">${_esc(item.name)}</div>
+          <div class="home-recent-name${item.type === 'missed' ? ' missed' : ''}">${_esc(resolvedName)}</div>
           <div class="home-recent-time">${_esc(item.time)}</div>
         </div>
       `;
       wrap.appendChild(div);
     });
+  }
+
+  function _resolveHistoryName(item) {
+    const c = getContactByPhone(item.number);
+    return c ? _fullName(c) : (item.name || item.number || '');
   }
 
   function getRecentHistory(n) {
@@ -628,6 +728,17 @@ const UI = (() => {
       $['regCardSub'].textContent = sub;
       $['regCardSub'].classList.toggle('hidden', !sub);
     }
+
+    _applyRegistrationBackground(status);
+  }
+
+  // Toggles the not-registered background overlay based on the same
+  // registration state the status dots/labels above already react to.
+  function _applyRegistrationBackground(status) {
+    const overlay = $['homeWallpaperOverlay'];
+    if (!overlay) return;
+    const bg = BackgroundStateService.getBackgroundForState(status);
+    overlay.classList.toggle('active', bg === 'not-registered');
   }
 
   /* ════════════════════════════════════════════════════════
@@ -834,6 +945,7 @@ const UI = (() => {
     filterContacts,
     getContactById,
     getContactByPhone,
+    setContactsCallEnabled,
     /* Registration status */
     setRegistrationStatus,
     /* Idle home / dial pad */
