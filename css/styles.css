@@ -46,14 +46,20 @@
   --frame-r: 54px;
   --screen-r: 44px;
 
-  /* Desktop mode scale — single source of truth for Desktop card size */
-  --desktop-scale: 0.5;
+  /* Desktop mode scale — 0.5 at/above the card's natural footprint
+     (420x700), exactly like before. Only shrinks further when the
+     embedding iframe is smaller than that, so the card always fits
+     instead of getting clipped. Needs `container-type` on the body
+     (set under DESKTOP SOFTPHONE MODE) to read cqi/cqb. */
+  --desktop-scale-ref: 0.5;
+  --desktop-scale: max(0.22, min(var(--desktop-scale-ref), calc(100cqi / 420px), calc(100cqb / 700px)));
   /* Compact mode scale — single source of truth for Compact mode size */
   --compact-scale: 0.72;
   /* Shared type/spacing multiplier: renders Desktop's contents at the
-     same visual size Compact mode renders them at, given Desktop's
-     card is zoomed by --desktop-scale instead of --compact-scale. */
-  --desktop-type-scale: calc(var(--compact-scale) / var(--desktop-scale));
+     same visual size Compact mode renders them at. Fixed to the
+     reference scale (not the live --desktop-scale) so internal
+     proportions never change — only the outer zoom shrinks. */
+  --desktop-type-scale: calc(var(--compact-scale) / var(--desktop-scale-ref));
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
@@ -1379,12 +1385,17 @@ body {
   color: var(--t2);
 }
 
-/* End call button */
+/* End call button (also holds the Record control, stacked above it by default —
+   the same visual rhythm as when Record lived in the controls grid: 14px above it
+   matches the grid's own row gap, 20px below it matches this row's old top padding) */
 .end-call-row {
   width: 100%;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 20px 0 8px;
+  gap: 20px;
+  padding: 14px 0 8px;
 }
 .end-call-btn {
   width: 72px;
@@ -1876,9 +1887,92 @@ body {
 body.layout-desktop {
   background: #0a0c14;
   align-items: center;
+  container-type: size;
+
+  /* Small-height compaction tokens — Dial pad & Active call screen only.
+     --dt-ratio (0..1) tracks --desktop-scale itself (min(scaleX, scaleY, 1)
+     normalized against --desktop-scale-ref), not a raw, height-only cqb
+     read — a separate raw-cqb ratio let these tokens keep growing with
+     container height alone even while --desktop-scale was pinned by width,
+     so a taller-but-not-wider window grew the dial pad/keys past the space
+     --desktop-scale had actually made available, pushing the Call/end-call
+     button under the tab bar. Using --desktop-scale as the single source
+     of truth ties compaction to the same width-or-height-whichever-binds
+     footprint the phone card itself is scaled to.
+     The curve is eased out (2r - r²) rather than linear so growth
+     front-loads at low r and flattens near r=1: with a linear ratio the
+     scaled clearance (scale * (fixed budget - content)) can dip briefly
+     right before settling at its final value as height increases at fixed
+     width — a quadratic side effect of content and clearance sharing the
+     same growth source. The ease-out curve reduces that residual dip to
+     sub-pixel (confirmed empirically, not just clamped/hidden by the
+     correction factors below).
+     kDial/kCall scale down each group's "base" (clamp upper bound): the
+     original base values, combined with the ×1.44 --desktop-type-scale
+     multiplier applied where these tokens are consumed, overflow the
+     fixed .screen-container budget once the container fully saturates
+     (i.e. this overflow already existed at large sizes before this fix;
+     it was simply never reached by the small sizes previously tested).
+     Each k is bounded below by max(floor/base) across its own token group
+     so no clamp() ever inverts (floor > base*k) — an inverted clamp
+     silently freezes that token at its floor forever, which would look
+     like "fixed" clearance but is really a token that stopped responding
+     to container size at all. kDial >= 0.611 (--dt-call-btn-size),
+     kCall >= 0.625 (--dt-ctrl-size); 0.62/0.63 keeps a small safety
+     margin above both. Font/icon-only tokens (key-main/key-sub/ctrl-icon)
+     are left uncorrected since they size text/glyphs inside an
+     already-sized box, not the box itself. */
+  --dt-r-raw: calc(var(--desktop-scale) / var(--desktop-scale-ref));
+  --dt-ratio: calc(2 * var(--dt-r-raw) - var(--dt-r-raw) * var(--dt-r-raw));
+
+  --dt-dialpad-header-pad-top: clamp(2px, calc(6px * 0.62 * var(--dt-ratio)), calc(6px * 0.62));
+  --dt-dialer-min-h:   clamp(30px, calc(58px * 0.62 * var(--dt-ratio)), calc(58px * 0.62));
+  --dt-dialer-pad-v:   clamp(0px,  calc(4px  * 0.62 * var(--dt-ratio)), calc(4px * 0.62));
+  --dt-key-gap:        clamp(2px,  calc(6px  * 0.62 * var(--dt-ratio)), calc(6px * 0.62));
+  --dt-keypad-pad-v:   clamp(2px,  calc(8px  * 0.62 * var(--dt-ratio)), calc(8px * 0.62));
+  --dt-keypad-pad-h:   clamp(10px, calc(24px * 0.62 * var(--dt-ratio)), calc(24px * 0.62));
+  --dt-key-size:       clamp(46px, calc(76px * 0.62 * var(--dt-ratio)), calc(76px * 0.62));
+  --dt-key-main-size:  clamp(18px, calc(28px * var(--dt-ratio)), 28px);
+  --dt-key-sub-size:   clamp(7px,  calc(9px  * var(--dt-ratio)), 9px);
+  --dt-actions-pad-v1: clamp(4px,  calc(14px * 0.62 * var(--dt-ratio)), calc(14px * 0.62));
+  --dt-actions-pad-h:  clamp(20px, calc(52px * 0.62 * var(--dt-ratio)), calc(52px * 0.62));
+  --dt-actions-pad-v2: clamp(2px,  calc(8px  * 0.62 * var(--dt-ratio)), calc(8px * 0.62));
+  --dt-call-btn-size:  clamp(44px, calc(72px * 0.62 * var(--dt-ratio)), calc(72px * 0.62));
+
+  --dt-avatar-margin-top:    clamp(10px, calc(32px * 0.5  * var(--dt-ratio)), calc(32px * 0.5));
+  --dt-avatar-margin-bottom: clamp(8px,  calc(20px * 0.5  * var(--dt-ratio)), calc(20px * 0.5));
+  --dt-timer-margin-top:     clamp(4px,  calc(12px * 0.5  * var(--dt-ratio)), calc(12px * 0.5));
+  --dt-ctrl-grid-pad-top:    clamp(8px,  calc(28px * 0.45 * var(--dt-ratio)), calc(28px * 0.45));
+  --dt-ctrl-grid-gap:        clamp(6px,  calc(14px * 0.5  * var(--dt-ratio)), calc(14px * 0.5));
+  --dt-ctrl-size:            clamp(40px, calc(64px * 0.63 * var(--dt-ratio)), calc(64px * 0.63));
+  --dt-ctrl-icon:            clamp(18px, calc(26px * var(--dt-ratio)), 26px);
+  --dt-end-row-pad-top:      clamp(6px,  calc(20px * 0.45 * var(--dt-ratio)), calc(20px * 0.45));
+  --dt-end-row-pad-bottom:   clamp(2px,  calc(8px  * 0.45 * var(--dt-ratio)), calc(8px * 0.45));
+  --dt-end-btn-size:         clamp(44px, calc(72px * 0.63 * var(--dt-ratio)), calc(72px * 0.63));
+
+  /* Avatar circle: --dt-ratio tracks --desktop-scale, which is capped at 0.5 and
+     already saturated (ratio=1) by the time the container reaches ~210x350 — well
+     below our small/medium test sizes, so it can't tell 320x480 apart from 700x900.
+     The avatar needs to keep shrinking well past that point (down to real container
+     heights around 300-550px) while still reading as "current size" once the panel
+     is genuinely large, so it's driven directly off real container height (cqb)
+     instead: floor below 320px height, full (unchanged) size at/above 560px, linear
+     between. No correction factor on the saturated end — large layouts keep today's
+     exact 100px/120px size, only the floor is new. */
+  --dt-avatar-size:      clamp(40px, calc(40px + 32px * ((100cqb - 320px) / 240px)), 72px);
+  --dt-avatar-wrap-size: clamp(48px, calc(48px + 38px * ((100cqb - 320px) / 240px)), 86px);
 }
 body.layout-desktop .phone-shell {
-  zoom: var(--desktop-scale);
+  /* `zoom` isn't reliably supported across embedding engines (e.g. it
+     silently fails to apply in Firefox), which left the whole 420x700
+     card rendered at full native size with no visible shrink — the
+     actual root cause of the reported clipping. `transform: scale()`
+     is supported everywhere, but doesn't shrink the layout box on its
+     own, so this wrapper is explicitly sized to the scaled footprint
+     while `.phone-screen` (below) is transform-scaled to fill it. */
+  width: calc(420px * var(--desktop-scale));
+  height: calc(700px * var(--desktop-scale));
+  overflow: hidden;
   background: #161c28;
   border-radius: 20px;
   padding: 0;
@@ -1896,6 +1990,8 @@ body.layout-desktop .phone-shell::before { display: none; }
 body.layout-desktop .phone-screen {
   width: 420px;
   height: 700px;
+  transform: scale(var(--desktop-scale));
+  transform-origin: top left;
   border-radius: 20px;
   background: #0d1117;
   box-shadow: none;
@@ -1973,14 +2069,13 @@ body.layout-desktop .desktop-header { display: flex; }
 .dh-user-ext  { font-size: 11px; color: var(--t3); line-height: 1.2; }
 
 /* ── Desktop mode — typography & spacing ─────────────────────────
-   .phone-shell is scaled by `zoom: var(--desktop-scale)` above
-   (locked — do not change; it's what keeps the card's physical size
-   fixed). Every rule below instead re-derives its raw value from
-   `--desktop-type-scale` (= --compact-scale / --desktop-scale), so
-   Desktop renders each element at the same visual size Compact mode
-   would render it at. This applies uniformly — including the dial
-   pad digits, typed-number display, and every button/icon/avatar —
-   there is no longer a frozen-size exception for any element.
+   .phone-shell is scaled by `transform: scale(var(--desktop-scale))`
+   above (applied to .phone-screen, sized into place by .phone-shell).
+   Every rule below re-derives its raw value from the fixed
+   `--desktop-type-scale` ratio, so the internal design (relative
+   proportions of every button/icon/avatar/padding) never changes —
+   only the outer transform grows or shrinks the whole card uniformly
+   to fit whatever the embedding iframe gives it.
    ─────────────────────────────────────────────────────────────── */
 body.layout-desktop .dh-name       { font-size: calc(15px   * var(--desktop-type-scale)); }
 body.layout-desktop .dh-user-name  { font-size: calc(13px   * var(--desktop-type-scale)); }
@@ -1996,9 +2091,9 @@ body.layout-desktop .tab-badge {
   font-size: calc(10px * var(--desktop-type-scale));
 }
 
-body.layout-desktop .key-main   { font-size: calc(28px * var(--desktop-type-scale)); }
-body.layout-desktop .key-sub    { font-size: calc(9px  * var(--desktop-type-scale)); }
-body.layout-desktop .key-btn    { width: calc(76px * var(--desktop-type-scale)); height: calc(76px * var(--desktop-type-scale)); }
+body.layout-desktop .key-main   { font-size: calc(var(--dt-key-main-size) * var(--desktop-type-scale)); }
+body.layout-desktop .key-sub    { font-size: calc(var(--dt-key-sub-size) * var(--desktop-type-scale)); }
+body.layout-desktop .key-btn    { width: calc(var(--dt-key-size) * var(--desktop-type-scale)); height: calc(var(--dt-key-size) * var(--desktop-type-scale)); }
 body.layout-desktop .quick-name { font-size: calc(11px * var(--desktop-type-scale)); }
 body.layout-desktop .quick-avatar {
   width: calc(56px * var(--desktop-type-scale));
@@ -2008,7 +2103,7 @@ body.layout-desktop .quick-avatar {
 body.layout-desktop .dialer-digits        { font-size: calc(40px * var(--desktop-type-scale)); }
 body.layout-desktop .dialer-digits.small  { font-size: calc(28px * var(--desktop-type-scale)); }
 body.layout-desktop .dialer-digits.xsmall { font-size: calc(20px * var(--desktop-type-scale)); }
-body.layout-desktop .call-btn      { width: calc(72px * var(--desktop-type-scale)); height: calc(72px * var(--desktop-type-scale)); }
+body.layout-desktop .call-btn      { width: calc(var(--dt-call-btn-size) * var(--desktop-type-scale)); height: calc(var(--dt-call-btn-size) * var(--desktop-type-scale)); }
 body.layout-desktop .call-btn svg  { width: calc(30px * var(--desktop-type-scale)); height: calc(30px * var(--desktop-type-scale)); }
 
 body.layout-desktop .large-title { font-size: calc(34px * var(--desktop-type-scale)); }
@@ -2033,21 +2128,40 @@ body.layout-desktop .call-company     { font-size: calc(16px * var(--desktop-typ
 body.layout-desktop .call-number-loc  { font-size: calc(14px * var(--desktop-type-scale)); }
 body.layout-desktop .call-ctrl-label  { font-size: calc(12px * var(--desktop-type-scale)); }
 body.layout-desktop .call-ctrl-circle {
-  width: calc(64px * var(--desktop-type-scale));
-  height: calc(64px * var(--desktop-type-scale));
+  width: calc(var(--dt-ctrl-size) * var(--desktop-type-scale));
+  height: calc(var(--dt-ctrl-size) * var(--desktop-type-scale));
 }
 body.layout-desktop .call-ctrl-circle svg {
-  width: calc(26px * var(--desktop-type-scale));
-  height: calc(26px * var(--desktop-type-scale));
+  width: calc(var(--dt-ctrl-icon) * var(--desktop-type-scale));
+  height: calc(var(--dt-ctrl-icon) * var(--desktop-type-scale));
 }
 body.layout-desktop .call-avatar-wrap {
-  width: calc(120px * var(--desktop-type-scale));
-  height: calc(120px * var(--desktop-type-scale));
+  width: calc(var(--dt-avatar-wrap-size) * var(--desktop-type-scale));
+  height: calc(var(--dt-avatar-wrap-size) * var(--desktop-type-scale));
+  margin: var(--dt-avatar-margin-top) 0 var(--dt-avatar-margin-bottom);
+  /* Flex item of .call-content (column) — its only children are
+     absolutely positioned (rings + avatar), so its min-content height
+     is ~0. Without flex-shrink:0, flexbox's default min-height:auto
+     lets it collapse toward that ~0 when siblings' combined height
+     gets tight, even though its own explicit height calc()s correctly. */
+  flex-shrink: 0;
 }
+body.layout-desktop .call-timer-display { margin-top: var(--dt-timer-margin-top); }
+/* Record + End Call always share one row (never stacked): at every embed size
+   tested, stacking these two made the block too tall for the available
+   .screen-container budget (measured ~69px overflow at the large/reference
+   size alone) — there is no size at which stacking actually fits, so the
+   row layout is unconditional rather than gated behind a container query. */
+body.layout-desktop .end-call-row {
+  flex-direction: row;
+  gap: 24px;
+  padding: var(--dt-end-row-pad-top) 0 var(--dt-end-row-pad-bottom);
+}
+body.layout-desktop .end-call-btn { width: var(--dt-end-btn-size); height: var(--dt-end-btn-size); }
 body.layout-desktop .call-avatar {
-  width: calc(100px * var(--desktop-type-scale));
-  height: calc(100px * var(--desktop-type-scale));
-  font-size: calc(36px * var(--desktop-type-scale));
+  width: calc(var(--dt-avatar-size) * var(--desktop-type-scale));
+  height: calc(var(--dt-avatar-size) * var(--desktop-type-scale));
+  font-size: calc(var(--dt-avatar-size) * 0.36 * var(--desktop-type-scale));
 }
 
 body.layout-desktop .incoming-company      { font-size: calc(16px * var(--desktop-type-scale)); }
@@ -2105,12 +2219,21 @@ body.layout-desktop .dh-presence-dot { width: calc(9px * var(--desktop-type-scal
 /* Container spacing — matches Compact's padding/gaps around the
    elements above, using the same shared ratio. */
 body.layout-desktop .keypad-grid {
-  padding: calc(8px * var(--desktop-type-scale)) calc(24px * var(--desktop-type-scale));
-  row-gap: calc(6px * var(--desktop-type-scale));
+  padding: calc(var(--dt-keypad-pad-v) * var(--desktop-type-scale)) calc(var(--dt-keypad-pad-h) * var(--desktop-type-scale));
+  row-gap: calc(var(--dt-key-gap) * var(--desktop-type-scale));
 }
 body.layout-desktop .call-controls-grid {
-  padding: calc(28px * var(--desktop-type-scale)) calc(20px * var(--desktop-type-scale)) 0;
-  gap: calc(14px * var(--desktop-type-scale));
+  padding: calc(var(--dt-ctrl-grid-pad-top) * var(--desktop-type-scale)) calc(20px * var(--desktop-type-scale)) 0;
+  gap: calc(var(--dt-ctrl-grid-gap) * var(--desktop-type-scale));
+}
+body.layout-desktop .dialpad-header { padding-top: var(--dt-dialpad-header-pad-top); }
+body.layout-desktop .dialer-display {
+  min-height: var(--dt-dialer-min-h);
+  padding-top: var(--dt-dialer-pad-v);
+  padding-bottom: var(--dt-dialer-pad-v);
+}
+body.layout-desktop .keypad-actions {
+  padding: var(--dt-actions-pad-v1) var(--dt-actions-pad-h) var(--dt-actions-pad-v2);
 }
 body.layout-desktop .quick-contacts {
   gap: calc(20px * var(--desktop-type-scale));
@@ -2492,11 +2615,6 @@ button.call-ctrl:focus-visible .call-ctrl-circle {
 @keyframes record-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,48,.45); }
   50%       { box-shadow: 0 0 0 8px rgba(255,59,48,0); }
-}
-
-/* ─── 7th button centering in 3-col grid ───────────────────── */
-.call-controls-grid .call-ctrl:nth-child(7):last-child {
-  grid-column: 2;
 }
 
 /* ─── CSS Tooltips ─────────────────────────────────────────── */

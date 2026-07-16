@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node --check \"js/services/backgroundStateService.js\")"
+      "Bash(node --check \"js/services/backgroundStateService.js\")",
+      "Bash(git status *)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npm ls *)",
+      "Bash(npm config *)",
+      "Bash(npx --yes playwright --version)",
+      "Bash(npx --yes playwright install chromium)",
+      "Read(//c/Users/LluísAlsina/AppData/Local/ms-playwright/**)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\LLUSAL~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Llu-sAlsina-DOCUMENTACION-LABELGRUP-PROYECTO-GENIUS-B2COM-LabelSuite-LabelPhone\\\\f4de54f1-0a25-4c59-bba5-0c923d79a823\\\\scratchpad\")",
+      "Bash(node -e ' *)",
+      "Bash(curl -s http://localhost:8934/index.html)",
+      "Bash(node repro.js)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }
