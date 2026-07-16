@@ -40,6 +40,8 @@ const AudioManager = (() => {
   let _firstFrameSent     = false;
   let _firstFrameReceived = false;
   let _started            = false;
+  let _held               = false; // true while the call is on Hold — mic keeps capturing, frames are discarded, not sent/queued
+  let _muted              = false; // true while the user has pressed Mute — same discard-not-queue treatment as _held, independent of it
 
   let _micFrameCount  = 0; // TEMP diagnostics (Phase 7) — remove once outbound audio is confirmed fixed
   let _sentFrameCount = 0;
@@ -136,26 +138,31 @@ const AudioManager = (() => {
     let offset = 0;
     while (combined.length - offset >= FRAME_SAMPLES) {
       const frame = combined.subarray(offset, offset + FRAME_SAMPLES);
-      const encoded = g711.alawEncode(frame);
-      if (encoded.byteLength !== FRAME_SAMPLES) {
-        _log('[AUDIO WS OUT]', 'WARNING encoded frame is not 160 bytes', encoded.byteLength);
-      }
-      telephonyGatewayClient.sendAudioFrame(encoded.buffer);
-      frameSendTimesMs.push(performance.now());
-      framesThisCallback++;
-      _sentFrameCount++;
-      if (_sentFrameCount === 1 || _sentFrameCount % 50 === 0) {
-        _log('[AUDIO WS OUT]', 'sent bytes', { bytes: encoded.byteLength, count: _sentFrameCount });
+      // Held/muted frames are discarded here, not queued — on Resume/Unmute,
+      // transmission continues from whatever the mic is producing at that
+      // moment, with no backlog of suppressed-period audio to burst out.
+      if (!_held && !_muted) {
+        const encoded = g711.alawEncode(frame);
+        if (encoded.byteLength !== FRAME_SAMPLES) {
+          _log('[AUDIO WS OUT]', 'WARNING encoded frame is not 160 bytes', encoded.byteLength);
+        }
+        telephonyGatewayClient.sendAudioFrame(encoded.buffer);
+        frameSendTimesMs.push(performance.now());
+        framesThisCallback++;
+        _sentFrameCount++;
+        if (_sentFrameCount === 1 || _sentFrameCount % 50 === 0) {
+          _log('[AUDIO WS OUT]', 'sent bytes', { bytes: encoded.byteLength, count: _sentFrameCount });
 
-        const uniqueByteCount = new Set(encoded).size;
-        const first16Bytes = Array.from(encoded.subarray(0, 16))
-          .map((b) => '0x' + b.toString(16).padStart(2, '0').toUpperCase())
-          .join(' ');
-        _log('[AUDIO ALAW]', { uniqueByteCount, first16Bytes });
-      }
-      if (!_firstFrameSent) {
-        _firstFrameSent = true;
-        _log('first frame sent');
+          const uniqueByteCount = new Set(encoded).size;
+          const first16Bytes = Array.from(encoded.subarray(0, 16))
+            .map((b) => '0x' + b.toString(16).padStart(2, '0').toUpperCase())
+            .join(' ');
+          _log('[AUDIO ALAW]', { uniqueByteCount, first16Bytes });
+        }
+        if (!_firstFrameSent) {
+          _firstFrameSent = true;
+          _log('first frame sent');
+        }
       }
       offset += FRAME_SAMPLES;
     }
@@ -291,6 +298,8 @@ const AudioManager = (() => {
     _started = true;
     _firstFrameSent = false;
     _firstFrameReceived = false;
+    _held = false;
+    _muted = false;
     _micFrameCount = 0;
     _sentFrameCount = 0;
     _lastCallbackAtMs = null;
@@ -358,6 +367,8 @@ const AudioManager = (() => {
     }
     _usingWorklet = false;
     _micResidual = new Float32Array(0);
+    _held = false;
+    _muted = false;
     _resamplePos = 0;
     _resampleCarry = null;
 
@@ -379,5 +390,33 @@ const AudioManager = (() => {
     _log('cleanup completed');
   }
 
-  return { start, stop };
+  /**
+   * Toggle outgoing-frame transmission for Hold/Resume. The mic stream,
+   * AudioContext and capture pipeline stay alive and keep producing frames —
+   * only the encode+send step is skipped while held, so Resume has zero
+   * setup delay and no backlog to flush.
+   */
+  function setHeld(held) {
+    _held = !!held;
+  }
+
+  /**
+   * Toggle outgoing-frame transmission for Mute/Unmute. Same discard-not-queue
+   * treatment as setHeld, and independent of it — muted state is preserved
+   * across Hold/Resume, and held frames stay suppressed regardless of mute.
+   */
+  function setMuted(muted) {
+    _muted = !!muted;
+  }
+
+  function toggleMuted() {
+    _muted = !_muted;
+    return _muted;
+  }
+
+  function isMuted() {
+    return _muted;
+  }
+
+  return { start, stop, setHeld, setMuted, toggleMuted, isMuted };
 })();
