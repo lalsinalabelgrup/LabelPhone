@@ -120,6 +120,7 @@ const App = (() => {
   ═══════════════════════════════════════════════════════ */
   function _bindGatewayEvents() {
     telephonyGatewayClient.on("disconnected", () => {
+      AudioManager.setMuted(false);
       UI.toast(I18N.t("toast.disconnected"));
     });
 
@@ -171,6 +172,7 @@ const App = (() => {
           number: call.number,
           startTime: call.startTime,
         });
+        call.muted = AudioManager.isMuted();
         UI.updateCallControls(call);
       } else {
         UI.updateCallConnected({
@@ -182,13 +184,21 @@ const App = (() => {
     });
 
     telephonyGatewayClient.on("held", () => {
+      AudioManager.setHeld(true);
       const call = telephonyGatewayClient.getState().call;
-      if (call) UI.updateCallControls(call);
+      if (call) {
+        call.muted = AudioManager.isMuted();
+        UI.updateCallControls(call);
+      }
     });
 
     telephonyGatewayClient.on("resumed", () => {
+      AudioManager.setHeld(false);
       const call = telephonyGatewayClient.getState().call;
-      if (call) UI.updateCallControls(call);
+      if (call) {
+        call.muted = AudioManager.isMuted();
+        UI.updateCallControls(call);
+      }
     });
 
     telephonyGatewayClient.on("ended", (data) => {
@@ -401,13 +411,10 @@ const App = (() => {
     document.getElementById("btnCallMute")?.addEventListener("click", () => {
       const call = telephonyGatewayClient.getState().call;
       if (!call) return;
-      const cmd = call.muted ? telephonyGatewayClient.unmute() : telephonyGatewayClient.mute();
-      cmd
-        .then(() => {
-          const c = telephonyGatewayClient.getState().call;
-          if (c) UI.updateCallControls(c);
-        })
-        .catch((err) => UI.toast(err.message));
+      if (call.status !== "answered" && call.status !== "held") return;
+      AudioManager.toggleMuted();
+      call.muted = AudioManager.isMuted();
+      UI.updateCallControls(call);
     });
 
     document.getElementById("btnCallSpeaker")?.addEventListener("click", () => {
@@ -417,7 +424,10 @@ const App = (() => {
         .setSpeaker(!call.speaker)
         .then(() => {
           const c = telephonyGatewayClient.getState().call;
-          if (c) UI.updateCallControls(c);
+          if (c) {
+            c.muted = AudioManager.isMuted();
+            UI.updateCallControls(c);
+          }
         })
         .catch((err) => UI.toast(err.message));
     });
@@ -425,10 +435,9 @@ const App = (() => {
     document.getElementById("btnCallHold")?.addEventListener("click", () => {
       const call = telephonyGatewayClient.getState().call;
       if (!call) return;
-      const cmd =
-        call.held || call.status === "held"
-          ? telephonyGatewayClient.resume()
-          : telephonyGatewayClient.hold();
+      const held = call.held || call.status === "held";
+      if (!held && call.status !== "answered") return;
+      const cmd = held ? telephonyGatewayClient.resume() : telephonyGatewayClient.hold();
       cmd.catch((err) => UI.toast(err.message));
     });
 

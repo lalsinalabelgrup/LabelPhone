@@ -251,6 +251,26 @@ const UI = (() => {
     return _avatarColors(contact.id);
   }
 
+  function _callActive(status) {
+    return status === 'answered' || status === 'held';
+  }
+
+  function _setControlEnabled(elId, enabled) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.classList.toggle('disabled', !enabled);
+    if (enabled) el.removeAttribute('aria-disabled');
+    else         el.setAttribute('aria-disabled', 'true');
+  }
+
+  function _setHoldEnabled(enabled) {
+    _setControlEnabled('btnCallHold', enabled);
+  }
+
+  function _setMuteEnabled(enabled) {
+    _setControlEnabled('btnCallMute', enabled);
+  }
+
   function showCallScreen(state) {
     const contact = state.contact;
     const number  = state.number || '';
@@ -280,6 +300,8 @@ const UI = (() => {
       const el = document.getElementById(id);
       if (el) el.classList.remove('active', 'on-hold');
     });
+    _setHoldEnabled(false);
+    _setMuteEnabled(false);
 
     showOverlay('screenCall');
     _setDynamicIsland('calling', contact ? name : number);
@@ -326,6 +348,8 @@ const UI = (() => {
       holdEl.setAttribute('aria-pressed', callState.held ? 'true' : 'false');
       holdEl.setAttribute('aria-label', callState.held ? 'Reanudar llamada' : 'Poner en espera');
     }
+    _setHoldEnabled(_callActive(callState.status));
+    _setMuteEnabled(_callActive(callState.status));
 
     const onHold = callState.held || callState.status === 'held';
     if ($['callStatusLabel'])
